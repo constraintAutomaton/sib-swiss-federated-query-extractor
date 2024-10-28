@@ -1,6 +1,7 @@
 # sib-swiss-federated-query-extractor
 
 An extractor of federated queries from the [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples) repository.
+The latest extractor run results are [available online](./sib-swiss-federated-queries.json); however, the results are updated with the changes in [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples).
 
 ## Installation
 To extract the queries the [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples) is added as a submodules,
