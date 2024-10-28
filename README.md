@@ -3,6 +3,10 @@
 An extractor of federated queries from the [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples) repository.
 The latest extractor run results are [available online](./sib-swiss-federated-queries.json); however, the results are updated with the changes in [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples).
 
+## Dependencies
+- [Riot](https://jena.apache.org/documentation/io/) or [Raptor](https://librdf.org/raptor/) for the generation of the query dataset of [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples)
+- [Node.js](https://nodejs.org/en)
+
 ## Installation
 To extract the queries the [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples) is added as a submodules,
 thus, it is important to make sure that it is [correctly fetched](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
