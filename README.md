@@ -1,5 +1,7 @@
 # sib-swiss-federated-query-extractor
 
+An extractor of federated queries from the [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples) repository.
+
 ## Installation
 To extract the queries the [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples) is added as a submodules,
 thus, it is important to make sure that it is [correctly fetched](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
