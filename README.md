@@ -50,7 +50,8 @@ to produce the `./sib-swiss-federated-queries.json`, with this format.
     // UNIX date when this data was generated
     "date": 1730118595470,
     // commit where the data from https://github.com/sib-swiss/sparql-examples was produced
-    "commit" : "436f604"
+    "commit" : "436f604",
+    "number_of_queries": 16
   }
 }
 ```

@@ -43,7 +43,8 @@ for (const binding of bindings) {
         }
     }
 }
-console.log(`There is ${Object.keys(federatedQueryReport).length} federated queries in the current sib-swiss example repository`);
+const nQueries = Object.keys(federatedQueryReport).length;
+console.log(`There is ${nQueries} federated queries in the current sib-swiss example repository`);
 
 const getCurrentCommitSibCommand = 'cd ./sib-swiss-query-examples && git rev-parse --short HEAD';
 
@@ -57,7 +58,8 @@ exec(getCurrentCommitSibCommand, (error, stdout, stderr) => {
   }
   federatedQueryReport["metadata"] = {
     "date":Date.now(),
-    "commit": stdout.replace("\n", "")
+    "commit": stdout.replace("\n", ""),
+    "number_of_queries": nQueries
   };
   writeFileSync("./sib-swiss-federated-queries.json", JSON.stringify(federatedQueryReport, null, 2));
 });
