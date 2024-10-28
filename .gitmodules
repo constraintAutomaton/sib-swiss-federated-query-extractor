@@ -1,0 +1,3 @@
+[submodule "sparql-examples"]
+	path = sib-swiss-query-examples
+	url = https://github.com/sib-swiss/sparql-examples.git

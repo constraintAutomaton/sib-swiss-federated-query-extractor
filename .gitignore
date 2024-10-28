@@ -11,3 +11,4 @@
 
 #!.yarn/cache
 .pnp.*
+all_queries.ttl
