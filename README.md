@@ -1,7 +1,7 @@
 # sib-swiss-federated-query-extractor
 
 An extractor of federated queries from the [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples) repository.
-The latest extractor run results are [available online](./sib-swiss-federated-queries.json); however, the results are updated with the changes in [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples).
+The latest extractor run results are [available online](./sib-swiss-federated-queries.json); however, the results are not updated upon changes in [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples).
 
 ## Dependencies
 - [Riot](https://jena.apache.org/documentation/io/) or [Raptor](https://librdf.org/raptor/) for the generation of the query dataset of [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples)
