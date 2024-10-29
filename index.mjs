@@ -9,17 +9,11 @@ PREFIX sh: <http://www.w3.org/ns/shacl#>
 PREFIX spex: <https://purl.expasy.org/sparql-examples/ontology#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT ?queryID ?federatedEndpoint ?comment ?query  WHERE {
-  {
-    SELECT ?queryID WHERE {
-      ?queryID spex:federatesWith ?federatedEndpoint .
-    }
-    GROUP BY ?queryID
-    HAVING (COUNT(?federatedEndpoint) > 1)
-  }
+SELECT ?queryID ?federatedEndpoint ?comment ?query ?target  WHERE {
   ?queryID sh:select ?query .
   ?queryID spex:federatesWith ?federatedEndpoint .
   ?queryID rdfs:comment ?comment .
+  ?queryID <https://schema.org/target> ?target
 }`;
 const bindingsStream = await myEngine.queryBindings(query, {
     sources: ['./all_queries.ttl'],
@@ -33,13 +27,15 @@ for (const binding of bindings) {
     const query = binding.get('query').value;
     const description = binding.get('comment').value;
     const federatedEndpoint = binding.get('federatedEndpoint').value;
+    const target = binding.get('target').value;
     if (federatedQueryReport[queryID] !== undefined) {
+      federatedQueryReport[queryID]["federatedEndpoint"].push(target);
         federatedQueryReport[queryID]["federatedEndpoint"].push(federatedEndpoint);
     } else {
         federatedQueryReport[queryID] = {
             query,
             description,
-            federatedEndpoint: [federatedEndpoint]
+            federatedEndpoint: [target, federatedEndpoint]
         }
     }
 }
