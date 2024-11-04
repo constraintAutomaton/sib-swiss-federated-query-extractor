@@ -38,14 +38,17 @@ to produce the `./sib-swiss-federated-queries.json`, with this format.
 
 ```json
 {
-  "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00266": {
-    "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cco: <http://rdf.ebi.ac.uk/terms/chembl#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n\nSELECT distinct ?entry (group_concat(distinct str(?gomflab); SEPARATOR = \",\") as ?gomfx) WHERE {\n\tSERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/idsm> {\n\t\tSERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/cco> {\n\t\t ?compound sachem:substructureSearch [ sachem:query \"CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O\" ] . # smiles chain for estradiol\n\t\t}\n\t\t?ACTIVITY rdf:type cco:Activity;\n\t\tcco:hasMolecule ?compound;\n\t\tcco:hasAssay ?ASSAY.\n\t\t?ASSAY cco:hasTarget ?TARGET.\n\t\t?TARGET cco:hasTargetComponent ?COMPONENT.\n\t\t?TARGET cco:taxonomy <http://identifiers.org/taxonomy/9606> . # human protein target\n\t\t?COMPONENT cco:targetCmptXref ?UNIPROT.\n\t\t#?UNIPROT rdf:type cco:UniprotRef.\n\t\tfilter(contains(str(?UNIPROT),\"uniprot\"))\n\t}\n\n\t?entry skos:exactMatch ?UNIPROT.\n\t?entry :isoform ?iso.\n\t?iso :goMolecularFunction / :term ?gomf .\n\t?gomf rdfs:label ?gomflab .\n}\n\nGROUP BY ?entry",
-    "description": "Proteins binding estradiol and/or similar molecules (substructure search with SMILES) and their associated GO_MF terms",
-    "federatedEndpoint": [
-      "https://idsm.elixir-czech.cz/sparql/endpoint/idsm",
-      "https://idsm.elixir-czech.cz/sparql/endpoint/cco"
-    ]
-  }...
+  "data": {
+    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00091": {
+      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cv: <http://nextprot.org/rdf/terminology/>\n\nselect distinct ?entry where {\n  service <http://drugbank.bio2rdf.org/sparql> {\n    select distinct ?uniprot WHERE {\n\t?drug <http://bio2rdf.org/drugbank_vocabulary:target> ?drugTarget .\n\t?drug <http://bio2rdf.org/drugbank_vocabulary:x-atc> ?atcCode.\n    ?drugTarget <http://bio2rdf.org/drugbank_vocabulary:x-uniprot> ?uniprot .\n\tfilter(!contains(str(?uniprot),\"_\"))\n\tfilter(contains(str(?atcCode), \"atc:C01\" )) # ATC starting with C01 means therapeutic subgroup for cardiac therapy\n    }\n  }\n  BIND (IRI(CONCAT(\"http://nextprot.org/rdf/entry/NX_\",substr(str(?uniprot),28,6))) as ?entry) # cast drugbank id to neXtprot entry\n}",
+      "description": "Proteins which are targets of drugs for cardiac therapy",
+      "federatesWith": [
+        "https://sparql.nextprot.org/sparql",
+        "http://drugbank.bio2rdf.org/sparql"
+      ],
+      "target": "https://sparql.nextprot.org/sparql"
+    },...
+  },
   "metadata":{
     // UNIX date when this data was generated
     "date": 1730118595470,

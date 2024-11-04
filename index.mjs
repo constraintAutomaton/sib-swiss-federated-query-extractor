@@ -20,7 +20,7 @@ const bindingsStream = await myEngine.queryBindings(query, {
 });
 
 const bindings = await bindingsStream.toArray();
-const federatedQueryReport = {};
+const federatedQueryReport = {data:{}};
 
 for (const binding of bindings) {
     const queryID = binding.get('queryID').value;
@@ -28,18 +28,19 @@ for (const binding of bindings) {
     const description = binding.get('comment').value;
     const federatedEndpoint = binding.get('federatedEndpoint').value;
     const target = binding.get('target').value;
-    if (federatedQueryReport[queryID] !== undefined) {
-      federatedQueryReport[queryID]["federatedEndpoint"].push(target);
-        federatedQueryReport[queryID]["federatedEndpoint"].push(federatedEndpoint);
+    if (federatedQueryReport["data"][queryID] !== undefined) {
+      federatedQueryReport["data"][queryID]["federatesWith"].push(target);
+        federatedQueryReport["data"][queryID]["federatesWith"].push(federatedEndpoint);
     } else {
-        federatedQueryReport[queryID] = {
+        federatedQueryReport["data"][queryID] = {
             query,
             description,
-            federatedEndpoint: [target, federatedEndpoint]
+            federatesWith: [target, federatedEndpoint]
         }
     }
+    federatedQueryReport["data"][queryID]["target"] = target;
 }
-const nQueries = Object.keys(federatedQueryReport).length;
+const nQueries = Object.keys(federatedQueryReport["data"]).length;
 console.log(`There is ${nQueries} federated queries in the current sib-swiss example repository`);
 
 const getCurrentCommitSibCommand = 'cd ./sib-swiss-query-examples && git rev-parse --short HEAD';
