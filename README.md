@@ -6,6 +6,7 @@ The latest extractor run results are [available online](./sib-swiss-federated-qu
 ## Dependencies
 - [Riot](https://jena.apache.org/documentation/io/) or [Raptor](https://librdf.org/raptor/) for the generation of the query dataset of [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples)
 - [Node.js](https://nodejs.org/en)
+- [java](https://www.java.com/en/) to use the generator from sib-swiss
 
 ## Installation
 To extract the queries the [sib-swiss/sparql-examples](https://github.com/sib-swiss/sparql-examples) is added as a submodules,
