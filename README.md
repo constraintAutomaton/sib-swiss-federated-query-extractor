@@ -29,10 +29,23 @@ To install the repository dependencies.
 
 ## Generate the federated queries
 
+### Usage
+
+```
+Usage: sib-swiss-federated-query-extractor [options]
+
+Options:
+  -V, --version                      output the version number
+  -i, --ignoreEndpoints <string...>  endpoints to ignore
+  -h, --help                         display help for command
+```
+
+# How to generate
+
 Run 
 
 ```sh
-yarn run extract-federated-queries
+yarn node index.mjs
 ```
 
 to produce the `./sib-swiss-federated-queries.json`, with this format.
@@ -59,3 +72,5 @@ to produce the `./sib-swiss-federated-queries.json`, with this format.
   }
 }
 ```
+
+endpoints can be ignored using the `-i` argument.

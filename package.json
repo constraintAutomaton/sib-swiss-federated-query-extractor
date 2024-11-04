@@ -1,10 +1,8 @@
 {
   "name": "sib-swiss-federated-query-extractor",
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.5.1",
   "dependencies": {
-    "@comunica/query-sparql-file": "^4.0.2"
-  },
-  "scripts": {
-    "extract-federated-queries": "yarn node index.mjs"
+    "@comunica/query-sparql-file": "^4.0.2",
+    "commander": "^12.1.0"
   }
 }

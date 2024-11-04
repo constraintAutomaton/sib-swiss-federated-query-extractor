@@ -1,271 +1,77 @@
 {
   "data": {
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00091": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cv: <http://nextprot.org/rdf/terminology/>\n\nselect distinct ?entry where {\n  service <http://drugbank.bio2rdf.org/sparql> {\n    select distinct ?uniprot WHERE {\n\t?drug <http://bio2rdf.org/drugbank_vocabulary:target> ?drugTarget .\n\t?drug <http://bio2rdf.org/drugbank_vocabulary:x-atc> ?atcCode.\n    ?drugTarget <http://bio2rdf.org/drugbank_vocabulary:x-uniprot> ?uniprot .\n\tfilter(!contains(str(?uniprot),\"_\"))\n\tfilter(contains(str(?atcCode), \"atc:C01\" )) # ATC starting with C01 means therapeutic subgroup for cardiac therapy\n    }\n  }\n  BIND (IRI(CONCAT(\"http://nextprot.org/rdf/entry/NX_\",substr(str(?uniprot),28,6))) as ?entry) # cast drugbank id to neXtprot entry\n}",
-      "description": "Proteins which are targets of drugs for cardiac therapy",
+    "https://sparql.rhea-db.org/.well-known/sparql-examples/draft_human_metabolome": {
+      "query": "PREFIX chebislash: <http://purl.obolibrary.org/obo/chebi/>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  ?uniprot ?mnemonic ?rhea ?chebi ?smiles ?inchiKey\nWHERE\n{\n  ?rhea rh:side/rh:contains/rh:compound ?compound .\n  ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?chebi .\n  ?chebi chebislash:smiles ?smiles ;\n          chebislash:inchikey ?inchiKey .\n  SERVICE <https://sparql.uniprot.org/sparql> {\n     ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea ;\n                                             up:organism taxon:9606 ;\n                                             up:mnemonic ?mnemonic .\n\n   }\n}",
+      "description": "Generate a draft human metabolome",
       "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "http://drugbank.bio2rdf.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00095": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cv: <http://nextprot.org/rdf/terminology/>\n\nselect distinct ?entry where {\n  SERVICE <http://drugbank.bio2rdf.org/sparql> {\n    select distinct ?uniprot WHERE {\n    ?drug <http://bio2rdf.org/drugbank_vocabulary:category> ?drugCat .\n\t?drug <http://bio2rdf.org/drugbank_vocabulary:target> ?drugTarget .\n    ?drugTarget <http://bio2rdf.org/drugbank_vocabulary:x-uniprot> ?uniprot .\n\tfilter(!contains(str(?uniprot),\"_\"))\n\tfilter(contains(str(?drugCat),\"Antipsychotic\"))\n    }\n  }\n  BIND (IRI(CONCAT(\"http://nextprot.org/rdf/entry/NX_\",substr(str(?uniprot),28,6))) as ?entry) # cast drugbank id to neXtprot entry\n  ?entry :isoform/:expressionProfile ?expr.\n  ?expr :term/:childOf cv:TS-0095.\n  ?expr :evidence / :expressionLevel :High.\n}",
-      "description": "Proteins which are targets of antipsychotic drugs and highly expressed in brain",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "http://drugbank.bio2rdf.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00139": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cco: <http://rdf.ebi.ac.uk/terms/chembl#>\nPREFIX nextprot_cv: <http://nextprot.org/rdf/terminology/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n\nSELECT DISTINCT ?entry (str(?gen) as ?gene) WHERE {\n    SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/idsm> {\n        SELECT DISTINCT ?protein WHERE {\n            ?target cco:hasTargetComponent ?tarComp .\n            ?target cco:taxonomy <http://identifiers.org/taxonomy/9606> . # human protein target\n            ?tarComp cco:targetCmptXref ?protein .\n            #?protein a cco:UniprotRef .\n            FILTER(contains(str(?protein),\"uniprot\"))\n            ?activity a cco:Activity ; cco:hasMolecule ?drug ; cco:hasAssay ?assay .\n            ?drug cco:hasMechanism / cco:hasTarget ?target . # known drug action mechanism\n            ?assay cco:hasTarget ?target; cco:targetConfScore ?score .\n            FILTER(?score > 8) # high-confidence assay\n        }\n    }\n    ?entry skos:exactMatch ?protein .\n    ?entry :isoform / :uniprotKeyword / :term nextprot_cv:KW-0418. #kinase\n    ?entry :gene / :recommendedName / rdfs:label ?gen.\n}",
-      "description": "Protein kinases which are high-confidence drug targets according to CHEMBL",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/idsm"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00140": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX nextprot_cv: <http://nextprot.org/rdf/terminology/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT DISTINCT ?entry WHERE {\n ?entry :isoform ?iso.\n optional {?iso :interactionInfo ?itinfo .}\n {\n ?itinfo rdfs:comment ?txt.\n filter(contains(?txt,\"viral\") || contains(?txt,\"virus\")).\n } # refers to a virus in the free-text interactionInfo topic\nUNION\n { ?iso :uniprotKeyword / :term nextprot_cv:KW-0945.} # host-virus interaction keyword\nUNION\n {\n SERVICE <https://sparql.uniprot.org/sparql> {\n SELECT distinct ?viralinteractor WHERE # get viral proteins with an IntAct xref\n {\n\t?viralinteractor a up:Protein .\n\t?viralinteractor rdfs:seeAlso ?db .\n\t?db up:database <http://purl.uniprot.org/database/IntAct> .\n \t?viralinteractor up:organism ?tax .\n\t?tax up:scientificName ?orgname.\n\tfilter(contains(?orgname,\"virus\"))\n }\n }\n ?entry :isoform / :binaryInteraction ?it .\n ?it :interactant ?interactant; :quality :GOLD. # NeXtprot entries with a GOLD IntAct binary interaction\n ?interactant skos:exactMatch ?viralinteractor . # interactant must be in the uniprot service result set to select the entry\n }\nUNION\n {\n SERVICE <https://sparql.uniprot.org/sparql> {\n SELECT distinct ?humprotein WHERE # get human proteins that share a PDB xref with a viral protein (same PDB id)\n {\n\t?humprotein a up:Protein .\n ?humprotein up:organism taxon:9606 .\n\t?humprotein rdfs:seeAlso ?db .\n\t?db up:database <http://purl.uniprot.org/database/PDB> .\n\t?viralprotein a up:Protein .\n\t?viralprotein rdfs:seeAlso ?db .\n ?viralprotein up:organism ?tax .\n\t?tax up:scientificName ?orgname.\n\tfilter(contains(?orgname,\"virus\"))\n }\n }\n ?entry skos:exactMatch ?humprotein .\n }\n}\norder by ?entry",
-      "description": "Proteins that interact with viral proteins",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
+        "https://sparql.rhea-db.org/sparql/",
         "https://sparql.uniprot.org/sparql"
       ],
-      "target": "https://sparql.nextprot.org/sparql"
+      "target": "https://sparql.rhea-db.org/sparql/"
     },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00246": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n\nSELECT DISTINCT ?entry WHERE {\n#SELECT DISTINCT ?entry str(?xlab) WHERE {\n SERVICE <https://sparql.rhea-db.org/sparql> {\n SELECT distinct ?chebi WHERE {\n ?reaction rdfs:subClassOf rh:Reaction .\n ?reaction rh:status rh:Approved .\n ?reaction rh:side ?reactionSide .\n ?reactionSide rh:contains ?participant .\n ?participant rh:compound ?compound .\n ?compound rh:chebi ?chebi .\n ?chebi rdfs:subClassOf+ CHEBI:18059 .\n }\n }\n ?entry :isoform / :smallMoleculeInteraction / :interactant ?x .\n ?x rdfs:label ?xlab .\n ?x skos:exactMatch ?chebi .\n} order by ?entry",
-      "description": "Proteins which are enzymes catalyzing a reaction involving lipids",
+    "https://sparql.swisslipids.org/.well-known/sparql-examples/26": {
+      "query": "PREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?swisslipid  ?organism {\n  ?swisslipid owl:equivalentClass ?chebi .\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?rhea rh:side/rh:contains/rh:compound ?compound .\n    ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?metabolite .\n  }\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?catalyticActivityAnnotation up:catalyticActivity/up:catalyzedReaction ?rhea .\n    ?protein up:annotation ?catalyticActivityAnnotation ;\n             up:organism ?organism .\n  }\n}",
+      "description": "Lipids produced in different organisms",
       "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.rhea-db.org/sparql",
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.swisslipids.org/sparql/"
+    },
+    "https://sparql.swisslipids.org/.well-known/sparql-examples/27": {
+      "query": "PREFIX SWISSLIPID: <https://swisslipids.org/rdf/SLM_>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?swisslipid  ?organism {\n  ?swisslipid owl:equivalentClass ?chebi .\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?rhea rh:side/rh:contains/rh:compound ?compound .\n    ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?metabolite .\n  }\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?catalyticActivityAnnotation up:catalyticActivity/up:catalyzedReaction ?rhea .\n    ?protein up:annotation ?catalyticActivityAnnotation ;\n             up:organism ?organism .\n  }\n  ?swisslipidIsomericSubpecies rdfs:subClassOf ?swisslipid ;\n        SWISSLIPID:rank SWISSLIPID:Isomeric_Subspecies .\n}",
+      "description": "Find the list of SwissLipids for all organisms and their Isomeric subspecies",
+      "federatesWith": [
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.rhea-db.org/sparql",
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.swisslipids.org/sparql/"
+    },
+    "https://sparql.swisslipids.org/.well-known/sparql-examples/34": {
+      "query": "PREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?swisslipid  {\n  ?swisslipid owl:equivalentClass ?chebi .\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?rhea rh:side/rh:contains/rh:compound ?compound .\n\t?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?metabolite . \n  }\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?catalyticActivityAnnotation up:catalyticActivity/up:catalyzedReaction ?rhea .\n    ?protein up:annotation ?catalyticActivityAnnotation ;\n             up:organism taxon:9606 .\n  }\n}",
+      "description": "Lipids affected by human enzymes",
+      "federatesWith": [
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.rhea-db.org/sparql",
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.swisslipids.org/sparql/"
+    },
+    "https://sparql.swisslipids.org/.well-known/sparql-examples/6": {
+      "query": "PREFIX SWISSLIPID: <https://swisslipids.org/rdf/SLM_>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Example 6\nSELECT ?startId ?startName ?chebi ?rhea ?rheaEquation ?uniprot ?uniprotName\nWHERE\n{\n  # SwissLipids query (list of) identifier(s)\n  VALUES ?startId { SWISSLIPID:000399814 }\n  # name\n  ?startId rdfs:label ?startName .\n  # ChEBI x-ref\n  ?startId owl:equivalentClass ?chebi .\n  # federated query to Rhea\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n  \t?rhea rh:equation ?rheaEquation .\n  \t?rhea rh:side/rh:contains/rh:compound/rh:chebi ?chebi .\n  }    \n  # federated query to UniProt\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?uniprot up:reviewed true .\n    ?uniprot up:recommendedName/up:fullName ?uniprotName .\n    ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea .\n  }\n} \nORDER BY ?startId",
+      "description": "For a given lipid (SWISSLIPID:000399814, Ceramide), return a list of all corresponding reactions (Rhea IDs and equation), as well as their enzymes as annotated in UniProtKB/Swiss-Prot) enzymes themselves (ID and protein name).\nThis query does not consider the hierarchy: it looks for reactions and enzymes only for the specified lipid.",
+      "federatesWith": [
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.rhea-db.org/sparql",
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.swisslipids.org/sparql/"
+    },
+    "https://sparql.swisslipids.org/.well-known/sparql-examples/7": {
+      "query": "PREFIX SWISSLIPID: <https://swisslipids.org/rdf/SLM_>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Example 7\nSELECT ?startId ?startLabel ?id ?name \nWHERE {\n  # Queried lipid species\n  VALUES ?startId { SWISSLIPID:000056871 }\n  ?startId rdfs:label ?startLabel . \n  # Corresponding Isomeric subspecies\n  ?id rdfs:subClassOf+ ?startId .  \n  ?id SWISSLIPID:rank SWISSLIPID:Isomeric_Subspecie ;\n\t  rdfs:label ?name .\n  # Mapped ChEBI\n  ?id owl:equivalentClass ?chebi .  \n  # federated query to Rhea\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n  \t?rhea rh:equation ?rheaEquation .\n  \t?rhea rh:side/rh:contains/rh:compound/rh:chebi ?chebi .\n  }    \n  # federated query to UniProt\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?uniprot up:reviewed true .\n    ?uniprot up:recommendedName/up:fullName ?uniprotName .\n    ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea .\n  }\n}",
+      "description": "For a given list of lipid Species, return a list of the corresponding Isomeric subspecies for that particular lipid that are linked to an enzyme as annotated in UniProtKB (UniProt AC and recommended name).\nThis question would allow a user with (a list of) very high level MS identifications to immediately narrow them to the most likely potential lipid structures and protein targets as in this example: SWISSLIPID:000056871 / PC(O-36:4) (target species of interest) -> SWISSLIPID:000028143 / PC(O-16:0/20:4(5Z,8Z,11Z,14Z)) -> LPCAT4, PLA2G4A, PLA2G4C, PLA2G4F (target proteins)",
+      "federatesWith": [
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.rhea-db.org/sparql",
+        "https://sparql.swisslipids.org/sparql/",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.swisslipids.org/sparql/"
+    },
+    "https://sparql.swisslipids.org/.well-known/sparql-examples/5": {
+      "query": "PREFIX SWISSLIPID: <https://swisslipids.org/rdf/SLM_>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\n\n# Example 5\nSELECT ?startId ?startName ?id ?name ?chebi ?rhea ?rheaEquation \nWHERE\n{\n  # SwissLipids query (list of) identifier(s)\n  VALUES ?startId { SWISSLIPID:000399814 }\n  # name\n  ?startId rdfs:label ?startName .\n  # Retrieve children lipids \n  ?id rdfs:subClassOf* ?startId .\n  ?id rdfs:label ?name .\n  # ChEBI x-ref\n  ?id owl:equivalentClass ?chebi .\n  # federated query to Rhea\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n  \t?rhea rh:equation ?rheaEquation .\n  \t?rhea rh:side/rh:contains/rh:compound/rh:chebi ?chebi .\n  }    \n} \nORDER BY  ?startId ?id",
+      "description": "For a given lipid (SWISSLIPID:000399814, Ceramide), return a list of all corresponding reactions (Rhea IDs and equation).\nThis query does consider the hierarchy: it looks for reactions involving the specified lipid and/or its more specific forms.",
+      "federatesWith": [
+        "https://sparql.swisslipids.org/sparql/",
         "https://sparql.rhea-db.org/sparql"
       ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00249": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cv: <http://nextprot.org/rdf/terminology/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX idsm: <https://idsm.elixir-czech.cz/sparql/endpoint/>\nPREFIX chembl: <http://rdf.ebi.ac.uk/terms/chembl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n\nSELECT distinct ?gomf ?gomflab (count(distinct ?entry) as ?ecnt) WHERE\n{\n  {\n    SELECT ?compound ?UNIPROT WHERE {\n      SERVICE <https://www.ebi.ac.uk/rdf/services/sparql/> {\n        SERVICE idsm:chembl {\n          ?compound sachem:substructureSearch [\n              sachem:query \"CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O\"] . # smiles chain for estradiol\n        }\n\n        ?ACTIVITY rdf:type chembl:Activity;\n          chembl:hasMolecule ?compound;\n          chembl:hasAssay ?ASSAY.\n        ?ASSAY chembl:hasTarget ?TARGET.\n        ?TARGET chembl:hasTargetComponent ?COMPONENT.\n        ?TARGET chembl:taxonomy <http://identifiers.org/taxonomy/9606> . # human protein target\n        ?COMPONENT chembl:targetCmptXref ?UNIPROT.\n        ?UNIPROT rdf:type chembl:UniprotRef.\n      }\n    }\n  }\n\n  ?entry skos:exactMatch ?UNIPROT.\n  ?entry :isoform ?iso.\n  ?iso :goMolecularFunction / :term ?gomf .\n  ?gomf rdfs:label ?gomflab .\n} group by ?gomf ?gomflab having(count (distinct ?entry) > 4)\norder by desc(?ecnt)",
-      "description": "GO_MF terms associated with proteins binding estradiol and/or similar molecules (substructure search with SMILES)",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/chembl",
-        "https://sparql.nextprot.org/sparql",
-        "https://www.ebi.ac.uk/rdf/services/sparql/"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00252": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cv: <http://nextprot.org/rdf/terminology/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX dc: <http://purl.org/dc/elements/1.1/>\n\nPREFIX wp: <http://vocabularies.wikipathways.org/wp#>\nPREFIX dcterms: <http://purl.org/dc/terms/>\n\nselect distinct ?entry ?gen ?pathwayname where {\nSERVICE <https://sparql.wikipathways.org/sparql> {\nSELECT DISTINCT ?pathwayname ?gen WHERE\n{\n  {?geneProduct a wp:Protein}\n    union\n  {?geneProduct a wp:GeneProduct}\n\n  ?geneProduct rdfs:label ?gen .\n  ?geneProduct dcterms:isPartOf ?pathway .\n  ?pathway a wp:Pathway .\n  ?pathway wp:organism ?organism .\n  FILTER(contains(str(?organism),\"9606\"))\n  ?pathway dc:title ?pathwayname .\n  FILTER(regex(?pathwayname,\"cancer\",\"i\")). }\n}\n?entry a :Entry .\n?entry :gene / :name / rdfs:label ?gen .\n?entry :isoform / :enzymeClassification / :term /:childOf cv:2_7_-_- . # protein kinase activity\n}\norder by ?gen",
-      "description": "Protein kinases involved in cancer pathways according to wikipathways",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://sparql.wikipathways.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00253": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX nextprot_cv: <http://nextprot.org/rdf/terminology/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX wp: <http://vocabularies.wikipathways.org/wp#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\n\nselect ?pathwayname (group_concat(distinct ?gen ; SEPARATOR = ',') as ?gene) WHERE {\n SERVICE <https://sparql.wikipathways.org/sparql> {\n\n { ?geneProduct a wp:GeneProduct . }\n union\n { ?geneProduct a wp:Protein . }\n ?geneProduct rdfs:label ?genraw .\n bind (concat( \"\"^^xsd:string, ?genraw) as ?gen).\n filter(!regex(?gen,\"[ a-z-]\")). # ensures official gene names for subsequent neXtprot matching\n ?geneProduct dcterms:isPartOf ?pathway .\n ?pathway a wp:Pathway .\n ?pathway wp:organism ?organism .\n filter(contains(str(?organism),\"9606\"))\n ?pathway dcterms:title ?pathwayname .\n }\n\n ?entry a :Entry .\n ?entry :gene / :recommendedName / rdfs:label ?gen .\n ?entry :isoform / :cellularComponent ?loc .\n values ?mitoloc {nextprot_cv:SL-0173 nextprot_cv:GO_0005739 } # SL and GO values for mitochondrion\n ?loc :term / :childOf ?mitoloc. # mitochondrion\n ?loc :evidence / :quality :GOLD .\n filter not exists {?loc :negativeEvidence ?negev} # No negative localization evidence\n}\ngroup by ?pathwayname\norder by ?pathwayname",
-      "description": "Human pathways in which at least one protein is mitochondrial GOLD",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://sparql.wikipathways.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00254": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX wp: <http://vocabularies.wikipathways.org/wp#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT DISTINCT ?entry ?gen ?pathwayname WHERE {\n SERVICE <https://sparql.wikipathways.org/sparql> {\n\n {?geneProduct a wp:Protein}\n union\n {?geneProduct a wp:GeneProduct}\n\n ?geneProduct rdfs:label ?genraw .\n\t bind (concat( \"\"^^xsd:string, ?genraw) as ?gen).\n filter(!regex(?gen,\"[ a-z-]\")). # ensures official gene names for subsequent neXtprot matching\n\n ?geneProduct dcterms:isPartOf ?pathway .\n ?pathway a wp:Pathway .\n ?pathway wp:organism ?organism .\n filter(contains(str(?organism),\"9606\")) # Human proteins\n ?pathway dcterms:title ?pathwayname .\n }\n ?entry a :Entry .\n ?entry :gene / :recommendedName / rdfs:label ?gen .\n}\norder by ?pathwayname",
-      "description": "Proteins with associated pathways in WikiPathways",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://sparql.wikipathways.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00258": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX sio: <http://semanticscience.org/resource/>\nPREFIX so: <http://purl.obolibrary.org/obo/SO_>\n\nSELECT DISTINCT ?entry (str(?gen) as ?gene) ?diseaseTitle ?sampleArticle WHERE {\n SERVICE <https://rdf.disgenet.org/sparql> {\n SELECT DISTINCT ?protein ?diseaseTitle (sample(?article) as ?sampleArticle) WHERE {\n ?vda sio:SIO_000628 ?variant,?disease .\n\t?vda sio:SIO_000772 ?article .\n ?disease a sio:SIO_010299 ; dcterms:title ?diseaseTitle . # true disease, use ncit:C7057 for traits\n ?variant a so:0001627 ; dcterms:title ?variantTitle . # intron variant\n ?variant so:associated_with ?gene .\n ?gene a ncit:C16612; sio:SIO_010078 ?protein .\n } group by ?protein ?diseaseTitle\n }\n BIND(IRI(replace(str(?protein),\"purl\",\"www\")) AS ?unipage) .\n ?entry :swissprotPage ?unipage .\n ?entry :gene / :recommendedName / rdfs:label ?gen .\n} order by ?entry",
-      "description": "Proteins involved in diseases due to intronic variants with one selected publication",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://rdf.disgenet.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00259": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX sio: <http://semanticscience.org/resource/>\n\nSELECT DISTINCT ?entry (str(?gen) as ?genx) ?umlsTerm WHERE {\n SERVICE <https://rdf.disgenet.org/sparql> {\n SELECT DISTINCT ?protein ?umlsTerm WHERE {\n ?gda sio:SIO_000628 ?gene,?disease .\n ?disease a sio:SIO_010056 . # traits or phenotypes\n ?disease dcterms:title ?umlsTerm .\n filter(contains(str(?umlsTerm),\"Long \"))\n ?gene a ncit:C16612; sio:SIO_010078 ?protein .\n }\n }\n BIND(IRI(replace(str(?protein),\"purl\",\"www\")) AS ?unipage) .\n ?entry :swissprotPage ?unipage .\n ?entry :gene / :recommendedName / rdfs:label ?gen .\n} order by ?entry",
-      "description": "Proteins involved in diseases with clinical manifestations that include long organs ",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://rdf.disgenet.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00260": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX db: <http://nextprot.org/rdf/db/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX sio: <http://semanticscience.org/resource/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX so: <http://purl.obolibrary.org/obo/SO_>\n\nSELECT DISTINCT ?entry ?umlsTerm (str(?snpac) as ?varid) ?pos (str(?orgaa) as ?orgAA) (str(?varaa) as ?varAA) WHERE {\n SERVICE <https://rdf.disgenet.org/sparql> {\n SELECT DISTINCT ?protein ?variantTitle ?umlsTerm\n WHERE {\n ?vda sio:SIO_000628 ?umls, ?variant .\n ?umls dcterms:title ?umlsTerm ; skos:exactMatch ?doid .\n ?doid rdfs:subClassOf+ <http://purl.obolibrary.org/obo/DOID_104> . # DO id for bacterial infection\n ?variant a so:0001583 ; dcterms:title ?variantTitle . # Missense variant\n ?variant so:associated_with ?gene .\n ?variant sio:SIO_000223 ?altAl .\n ?altAl rdf:type <http://purl.obolibrary.org/obo/GENO_0000476>; sio:SIO_000900 ?altAlFreq .\n ?altAlFreq a sio:SIO_001367; sio:SIO_000300 ?altAlFreqVal .\n filter(?altAlFreqVal > 0.01) # freq > 1%\n ?gene a ncit:C16612; sio:SIO_010078 ?protein .\n }\n }\n\n BIND(IRI(replace(str(?protein),\"purl\",\"www\")) AS ?unipage) .\n ?entry :swissprotPage ?unipage .\n ?entry :isoform ?iso .\n ?iso :swissprotDisplayed true .\n ?iso :variant ?var .\n ?var :evidence /:reference ?xref .\n ?xref :provenance db:dbSNP; :accession ?snpac .\n ?var :start ?pos ; :original ?orgaa; :variation ?varaa .\n filter(contains(?snpac,str(?variantTitle))) # matches the exact same variant Disgenet returned\n} order by ?entry",
-      "description": "Proteins with high-frequency missense variants involved in bacterial infection, with dbSNP identifiers and position on the canonical isoform",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://rdf.disgenet.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00264": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cv: <http://nextprot.org/rdf/terminology/>\nPREFIX db: <http://nextprot.org/rdf/db/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nPREFIX orth: <http://purl.orthodb.org/>\nPREFIX interpro: <http://www.ebi.ac.uk/interpro/entry/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nselect distinct ?entry (str(?ipac) AS ?ipacSTR) (group_concat(?taxlab ; SEPARATOR = \",\") AS ?taxlab1) where {\n  VALUES ?ipac {\"IPR018154\"^^xsd:string \"IPR008981\"^^xsd:string }. # Interpro patterns for TLV/ENV coat polyprotein\n  bind (iri(CONCAT(\"http://www.ebi.ac.uk/interpro/entry/\",str(?ipac))) as ?ipref) .\n  SERVICE <https://sparql.orthodb.org/sparql/> {\n   select distinct ?ipref ?taxlab where {\n   ?taxon a orth:Species; rdfs:subClassOf+  ?clade.\n   ?clade a orth:Clade; up:scientificName 'Viruses'.\n   ?gene_v up:organism / a ?taxon; orth:xref [a orth:Xref; orth:xrefResource ?ipref].\n   ?taxon up:scientificName ?taxlab .\n   }\n  }\n  ?entry a :Entry .\n  ?entry :reference ?ref .\n  ?ref a :Xref ; :provenance db:InterPro; :accession ?ipac .\n} group by ?entry ?ipac",
-      "description": "Proteins with ENV polyprotein domains and matching viral species",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://sparql.orthodb.org/sparql/"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00266": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cco: <http://rdf.ebi.ac.uk/terms/chembl#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n\nSELECT distinct ?entry (group_concat(distinct str(?gomflab); SEPARATOR = \",\") as ?gomfx) WHERE {\n\tSERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/idsm> {\n\t\tSERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/cco> {\n\t\t ?compound sachem:substructureSearch [ sachem:query \"CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O\" ] . # smiles chain for estradiol\n\t\t}\n\t\t?ACTIVITY rdf:type cco:Activity;\n\t\tcco:hasMolecule ?compound;\n\t\tcco:hasAssay ?ASSAY.\n\t\t?ASSAY cco:hasTarget ?TARGET.\n\t\t?TARGET cco:hasTargetComponent ?COMPONENT.\n\t\t?TARGET cco:taxonomy <http://identifiers.org/taxonomy/9606> . # human protein target\n\t\t?COMPONENT cco:targetCmptXref ?UNIPROT.\n\t\t#?UNIPROT rdf:type cco:UniprotRef.\n\t\tfilter(contains(str(?UNIPROT),\"uniprot\"))\n\t}\n\n\t?entry skos:exactMatch ?UNIPROT.\n\t?entry :isoform ?iso.\n\t?iso :goMolecularFunction / :term ?gomf .\n\t?gomf rdfs:label ?gomflab .\n}\n\nGROUP BY ?entry",
-      "description": "Proteins binding estradiol and/or similar molecules (substructure search with SMILES) and their associated GO_MF terms",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/idsm",
-        "https://sparql.nextprot.org/sparql",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/cco"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00267": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cco: <http://rdf.ebi.ac.uk/terms/chembl#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n\n\nSELECT distinct ?entry (group_concat(distinct str(?gomflab); SEPARATOR = \",\") as ?gomfx) WHERE {\n \t\tSERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/idsm> {\n \t\tSERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/cco> {\n \t\t?compound sachem:similarCompoundSearch [ sachem:query \"CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O\" ] . # smiles chain for estradiol\n\t\t }\n\t\t \t\t?ACTIVITY rdf:type cco:Activity;\n\t\tcco:hasMolecule ?compound;\n cco:hasAssay ?ASSAY.\n\t\t ?ASSAY cco:hasTarget ?TARGET.\n\t\t ?TARGET cco:taxonomy <http://identifiers.org/taxonomy/9606> . # human protein target\n\t\t ?TARGET cco:hasTargetComponent ?COMPONENT.\n\t\t ?COMPONENT cco:targetCmptXref ?UNIPROT.\n\t\t filter(contains(str(?UNIPROT),\"uniprot\"))\n\t\t }\n\t?entry skos:exactMatch ?UNIPROT.\n\t?entry :isoform ?iso.\n\t?iso :goMolecularFunction / :term ?gomf .\n\t?gomf rdfs:label ?gomflab .\n}\ngroup by ?entry",
-      "description": "Proteins binding estradiol and/or similar molecules (similarity search with SMILES), and their associated GO_MF terms",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/idsm",
-        "https://sparql.nextprot.org/sparql",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/cco"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00269": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX wp: <http://vocabularies.wikipathways.org/wp#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT DISTINCT ?entry (str(?gen) as ?gene) ?pathwayname WHERE {\n SERVICE <https://sparql.wikipathways.org/sparql> {\n {?geneProduct a wp:Protein}\n union\n {?geneProduct a wp:GeneProduct}\n ?geneProduct rdfs:label ?genraw .\n bind (concat( \"\"^^xsd:string, ?genraw) as ?gen).\n filter(!regex(?gen,\"[ a-z-]\")). # ensures official gene names for subsequent neXtprot matching\n ?geneProduct dcterms:isPartOf ?pathway .\n ?pathway a wp:Pathway .\n ?pathway wp:organism ?organism .\n filter(contains(str(?organism),\"9606\")) # Human proteins\n ?pathway dcterms:title ?pathwayname .\n ?pathway wp:ontologyTag <http://purl.obolibrary.org/obo/DOID_162> . # Parent id for all cancers\n }\n ?entry a :Entry .\n ?entry :gene / :recommendedName / rdfs:label ?gen .\n}\norder by ?pathwayname",
-      "description": "Proteins with associated cancer pathways in WikiPathways (via Disease Ontology classification)",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://sparql.wikipathways.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00270": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX wp: <http://vocabularies.wikipathways.org/wp#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nselect ?entry (str(?gen) AS ?gene) ?pathwayname (group_concat(distinct str(?loclab); SEPARATOR = \",\") as ?locs) WHERE {\n SERVICE <https://sparql.wikipathways.org/sparql> {\n\n {?geneProduct a wp:Protein}\n union\n {?geneProduct a wp:GeneProduct}\n\n ?geneProduct rdfs:label ?genraw .\n bind (concat( \"\"^^xsd:string, ?genraw) as ?gen).\n\n filter(!regex(?gen,\"[ a-z-]\")). # ensures official gene names for subsequent neXtprot matching\n ?geneProduct dcterms:isPartOf ?pathway .\n ?pathway a wp:Pathway .\n ?pathway wp:organism ?organism .\n filter(contains(str(?organism),\"9606\"))\n ?pathway dcterms:title ?pathwayname .\n filter(regex(?pathwayname,\"rett\",\"i\")).\n }\n ?entry a :Entry .\n ?entry :gene / :recommendedName / rdfs:label ?gen .\n ?entry :isoform ?iso.\n ?iso :cellularComponent ?locannot .\n ?locannot :term ?locterm .\n ?locterm rdfs:label ?loclab .\n ?locannot :evidence ?locev .\n ?locev :quality :GOLD .\n filter not exists {?locannot :negativeEvidence ?locev .}\n}\ngroup by ?entry ?gen ?pathwayname\norder by ?entry",
-      "description": "Proteins belonging to Rett syndrome pathways, and their subcellular locations (GOLD)",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://sparql.wikipathways.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00272": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX wp: <http://vocabularies.wikipathways.org/wp#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT DISTINCT ?entry (str(?gen) AS ?gene) ?pathwayname (str(?discom) AS ?discom1) ?medsource WHERE {\n SERVICE <http://sparql.wikipathways.org/sparql> {\n {?geneProduct a wp:Protein}\n union\n {?geneProduct a wp:GeneProduct}\n\n ?geneProduct rdfs:label ?genraw .\n bind (concat( \"\"^^xsd:string, ?genraw) as ?gen).\n filter(!regex(?gen,\"[ a-z-]\")). # ensures official gene names for subsequent neXtprot matching\n\n ?geneProduct dcterms:isPartOf ?pathway .\n ?pathway a wp:Pathway .\n ?pathway wp:organism ?organism .\n filter(contains(str(?organism),\"9606\"))\n\n ?pathway dcterms:title ?pathwayname .\n filter(regex(?pathwayname,\"sars-cov-2\",\"i\")|| regex(?pathwayname,\"corona\",\"i\") ).\n }\n\n ?entry a :Entry .\n ?entry :gene / :recommendedName / rdfs:label ?gen .\n ?entry :isoform ?iso.\n ?iso :medical ?med.\n ?med rdfs:comment ?discom.\n ?med :evidence/:assignedBy ?medsource.\n}\norder by ?entry",
-      "description": "Proteins involved in coronaviruses/SARS-CoV-2 pathways with associated medical information",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "http://sparql.wikipathways.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00276": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX db: <http://nextprot.org/rdf/db/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\nPREFIX sio: <http://semanticscience.org/resource/>\nPREFIX so: <http://purl.obolibrary.org/obo/SO_>\n\nSELECT DISTINCT ?entry (str(?umlsTerm) as ?umlsTermSTR) (str(?snpac) as ?varid) ?pos (str(?orgaa) as ?orgAA) (str(?varaa) as ?varAA) ?article WHERE {\n SERVICE <https://rdf.disgenet.org/sparql> {\n ?vda sio:SIO_000628 ?umls, ?variant .\n ?vda sio:SIO_000772 ?article .\n ?umls dcterms:title ?umlsTerm.\n {?umls a sio:SIO_010299 .} # disease\n union\n {?umls a sio:SIO_010056 .} # or phenotype\n ?variant a so:0001583 ; dcterms:title ?variantTitle . # Missense variant\n ?variant so:associated_with ?gene .\n ?gene a ncit:C16612; sio:SIO_010078 ?protein .\n ?gene sio:SIO_000205 ?gname.\n filter(contains(str(?gname),\"HBB\")) # Hemoglobin gene (NX_P68871)\n }\n\n BIND(IRI(replace(str(?protein),\"purl\",\"www\")) AS ?unipage) .\n ?entry :swissprotPage ?unipage .\n ?entry :isoform ?iso .\n ?iso :swissprotDisplayed true .\n ?iso :variant ?var .\n ?var :evidence /:reference ?xref .\n ?xref :provenance db:dbSNP; :accession ?snpac .\n ?var :start ?pos ; :original ?orgaa; :variation ?varaa .\n filter(contains(?snpac,str(?variantTitle))) # matches the exact same variant Disgenet returned\n}",
-      "description": "Diseases/phenotypes associated with coding variants and associated publications for a given gene",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://rdf.disgenet.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00293": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX cv: <http://nextprot.org/rdf/terminology/>\n\nPREFIX faldo:<http://biohackathon.org/resource/faldo#>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX glycan:<http://purl.jp/bio/12/glyco/glycan#>\nPREFIX glyco:<http://purl.jp/bio/12/glyco/conjugate#>\n\nselect distinct ?entry ?isoNP ?position where {\n  values ?pmid {\"24884609\" \"10441114\"} # pubmed ids, space- or linebreak-separated\n\n  bind(IRI(concat(\"http://www.ncbi.nlm.nih.gov/pubmed/\",?pmid)) as ?pubIRI)\n  SERVICE <https://glyconnect.expasy.org/sparql> {\n    ?ref_conjugate glyco:has_protein_part ?glycoprotein .\n    ?glycoprotein glyco:glycosylated_at / faldo:location ?glycosite .\n    ?glycosite faldo:reference ?isoform ; faldo:position ?position .\n    ?ref_conjugate glycan:published_in / foaf:primaryTopicOf ?pubIRI .\n  }\n  BIND(IRI(replace(str(?isoform),\"http://purl.uniprot.org/isoforms/\",\"http://nextprot.org/rdf/isoform/NX_\")) AS ?isoNP) .\n  ?entry :isoform ?isoNP .\n} order by ?entry ?position",
-      "description": "Glycosylation sites annotated by GlyConnect from a list of publications (PMIDs)",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://glyconnect.expasy.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://purl.expasy.org/sparql-examples/ontology#neXtProt/NXQ_00300": {
-      "query": "PREFIX : <http://nextprot.org/rdf/>\nPREFIX nextprot_cv: <http://nextprot.org/rdf/terminology/>\nPREFIX orthodb: <http://purl.orthodb.org/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nselect ?entry (str(?name) as ?human_name) (group_concat(distinct str(?fly_name); SEPARATOR = \",\") as ?fly_names) where\n{\n?entry :isoform ?iso.\n?entry :gene / :recommendedName / rdfs:label ?name.\n?entry :existence :Evidence_at_protein_level .\nfilter not exists { ?iso :functionInfo ?_. }\nfilter not exists { ?iso :catalyticActivity ?_ .}\nfilter not exists { ?iso :transportActivity ?_ .}\nfilter not exists { ?iso :pathway ?_. }\nfilter not exists { ?iso :function / :term ?fterm . filter(?fterm != nextprot_cv:GO_0005524 && ?fterm != nextprot_cv:GO_0000287 && ?fterm != nextprot_cv:GO_0005515 && ?fterm != nextprot_cv:GO_0042802 && ?fterm != nextprot_cv:GO_0008270 && ?fterm != nextprot_cv:GO_0051260 && ?fterm != nextprot_cv:GO_0005509 && ?fterm != nextprot_cv:GO_0003676 && ?fterm != nextprot_cv:GO_0003824 && ?fterm != nextprot_cv:GO_0007165 && ?fterm != nextprot_cv:GO_0035556 && ?fterm != nextprot_cv:GO_0046914 && ?fterm != nextprot_cv:GO_0046872)}\n?iso :expression ?e1.\n?e1 :term/:childOf nextprot_cv:TS-0095;:evidence/:observedExpression :High.\n{\nSERVICE <https://sparql.orthodb.org/sparql>\n{?gene rdfs:seeAlso ?entry; orthodb:memberOf ?og.\n?og orthodb:ogBuiltAt [up:scientificName ?clade]\n; orthodb:hasMember ?ortholog.\n?ortholog orthodb:name ?fly_name; up:organism/a/up:scientificName 'Drosophila melanogaster'.\nfilter (?clade='Metazoa') }\n}\n} group by ?entry ?name",
-      "description": "Proteins with protein existence \"At protein level\" (PE=1) that have no function annotated, are highly expressed in brain and have homologs in Drosophila melanogaster according to OrthoDB",
-      "federatesWith": [
-        "https://sparql.nextprot.org/sparql",
-        "https://sparql.orthodb.org/sparql"
-      ],
-      "target": "https://sparql.nextprot.org/sparql"
-    },
-    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/001": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX pr: <http://www.wikidata.org/prop/reference/>\n\nSELECT DISTINCT ?ik2d ?genus\nWHERE\n    {\n    ?material sosa:hasSample ?extract ;\n        sosa:isSampleOf ?organe .\n    ?organe emi:inTaxon ?wd_sp .\n    ?wd_sp rdfs:label \"tabernaemontana coffeoides\" .\n    ?extract sosa:isFeatureOfInterestOf ?lcms .\n    ?lcms sosa:hasResult ?feature_list .\n    ?feature_list emi:hasLCMSFeature ?feature .\n    ?feature emi:hasAnnotation ?sirius_annotation .\n    ?sirius_annotation a emi:StructuralAnnotation ;\n        prov:wasGeneratedBy ?activity ;\n        emi:hasChemicalStructure ?ik2d .\n    ?activity prov:wasAssociatedWith <https://bio.informatik.uni-jena.de/software/sirius> .\n    ?ik2d emi:hasSMILES ?smiles ;\n        emi:isInChIKey2DOf ?ik .\n    ?ik emi:isInChIKeyOf ?wd_id .\n\t{\n        SELECT DISTINCT ?wd_id ?genus WHERE {\n            ?material sosa:hasSample ?extract ;\n                sosa:isSampleOf ?organe .\n            ?organe emi:inTaxon ?wd_sp .\n            ?wd_sp rdfs:label \"tabernaemontana coffeoides\" .\n            OPTIONAL {\n                SERVICE <https://query.wikidata.org/sparql> {\n                    ?wd_sp wdt:P225 ?species_name .\n                    ?genus wdt:P31 wd:Q16521 ;\n                        wdt:P105 wd:Q34740 ;\n                        ^wdt:P171* ?wd_sp .\n                    ?childtaxa wdt:P171* ?genus .\n                    ?wd_id wdt:P703 ?childtaxa\n                }\n            }\n        }\n    }\n}",
-      "description": "Among the SIRIUS structural annotations from Tabernaemontana coffeoides (Apocynaceae) seeds extract, which ones are reported in the Tabernaemontana genus?",
-      "federatesWith": [
-        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
-        "https://query.wikidata.org/sparql"
-      ],
-      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
-    },
-    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/002": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX enpkg: <https://enpkg.commons-lab.org/kg/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\n\nSELECT DISTINCT ?ik2d ?smiles\nWHERE {\n    ?extract a emi:ExtractSample ;\n        sosa:isSampleOf* ?organe .\n    ?organe emi:inTaxon ?taxon .\n    ?taxon rdfs:label \"tabernaemontana coffeoides\" .\n    ?extract sosa:isFeatureOfInterestOf ?lcms .\n    ?lcms sosa:hasResult ?feature_list .\n    ?feature_list emi:hasLCMSFeature ?feature .\n    ?feature emi:hasAnnotation ?annotation .\n    ?annotation emi:hasChemicalStructure ?ik2d .\n    ?ik2d a emi:InChIKey2D ;\n        emi:hasSMILES ?smiles ;\n        emi:isInChIKey2DOf ?ik .\n    ?ik emi:isInChIKeyOf ?wd_id .\n    SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/wikidata> {\n        SELECT * WHERE {\n            ?wd_id sachem:substructureSearch [\n                sachem:query \"CCC12CCCN3C1C4(CC3)C(CC2)NC5=CC=CC=C45\" # Aspidospermidine scaffold\n            ] .\n        }\n    }\n}",
-      "description": "Among the structural annotations from Tabernaemontana coffeoides (Apocynaceae) seeds extract, which ones contain an aspidospermidine substructure?",
-      "federatesWith": [
-        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/wikidata"
-      ],
-      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
-    },
-    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/006": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\n\nSELECT ?family_name ?genus_name ?species_name ?wd_sp ?feature ?sub_rt ?sub_parent_mass ?count\nWHERE {\n    # Subquery to get the top N hits with their Wikidata IDs\n    {\n        SELECT ?wd_sp ?feature (SAMPLE(?rt) AS ?sub_rt) (SAMPLE(?parent_mass) AS ?sub_parent_mass) (COUNT(?peakloss) AS ?count)\n        WHERE {\n            ?material sosa:hasSample ?extract ;\n                sosa:isSampleOf* ?organism.\n            ?organism emi:inTaxon ?wd_sp .\n            ?extract a emi:ExtractSample ;\n                sosa:isFeatureOfInterestOf ?lcms .\n            ?lcms a emi:LCMSAnalysisPos ;\n                sosa:hasResult ?feature_list .\n            ?feature_list emi:hasLCMSFeature ?feature .\n            ?feature a emi:LCMSFeature ;\n                emi:hasSpec2VecDoc ?doc ;\n                emi:hasParentMass ?parent_mass ;\n                emi:hasRetentionTime ?rt .\n            ?doc emi:hasSpec2VecLoss|emi:hasSpec2VecPeak ?peakloss .\n\n            {\n                SELECT ?peakloss WHERE {\n                    ?lcms a emi:LCMSAnalysisPos ;\n                        sosa:hasResult ?feature_list ;\n                        sosa:hasFeatureOfInterest ?sample .\n                    ?sample dcterms:identifier \"VGF151_E05\" ;\n                        sosa:isSampleOf* ?organism .\n                    ?organism emi:inTaxon/rdfs:label \"datura stramonium\".\n                    ?feature_list emi:hasLCMSFeature ?feature .\n                    ?feature a emi:LCMSFeature ;\n                        emi:hasSpec2VecDoc ?doc .\n                    ?doc emi:hasSpec2VecLoss|emi:hasSpec2VecPeak ?peakloss .\n                }\n            }\n        }\n        GROUP BY ?wd_sp ?feature\n        ORDER BY DESC(?count)\n        LIMIT 5\n    }\n\n    # Outer query to fetch species names from Wikidata\n    # Fetching taxonomic information from Wikidata\n    SERVICE <https://query.wikidata.org/sparql> {\n        ?wd_sp wdt:P225 ?species_name .\n        OPTIONAL {\n            ?family wdt:P31 wd:Q16521 ;\n                wdt:P105 wd:Q35409 ;\n                wdt:P225 ?family_name ;\n                ^wdt:P171* ?wd_sp .\n        }\n        OPTIONAL {\n            ?genus wdt:P31 wd:Q16521 ;\n                wdt:P105 wd:Q34740 ;\n                wdt:P225 ?genus_name ;\n                ^wdt:P171* ?wd_sp .\n        }\n    }\n} GROUP BY ?family_name ?genus_name ?species_name ?wd_sp ?feature ?sub_rt ?sub_parent_mass ?count\nORDER BY DESC(?count)",
-      "description": "Search spectrally related features with and within the VGF151_E05 sample of a datura stramonium through counts of common peaks and loss. Return their species, family and genus names",
-      "federatesWith": [
-        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
-        "https://query.wikidata.org/sparql"
-      ],
-      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
-    },
-    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/007": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\n\nSELECT DISTINCT ?ik ?wd_id ?taxon ?taxon_name\nWHERE {\n    SERVICE <https://query.wikidata.org/sparql> {\n        ?wd_id wdt:P31 wd:Q113145171 ;\n            wdt:P703 ?taxon .\n        ?taxon wdt:P225 ?taxon_name .\n    }\n    {\n        SELECT DISTINCT ?ik ?chemblid ?name ?type ?value ?wd_id\n        WHERE {\n            ?sample a emi:ExtractSample ;\n                sosa:isSampleOf* ?organe ;\n                sosa:isFeatureOfInterestOf ?lcms .\n            ?organe emi:inTaxon ?taxon .\n            ?taxon rdfs:label \"melochia umbellata\" .\n            ?lcms a emi:LCMSAnalysisPos ;\n                sosa:hasResult ?feature_list .\n            ?feature_list emi:hasLCMSFeature ?feature .\n            {\n                ?feature emi:hasAnnotation ?annotation .\n                ?annotation a emi:StructuralAnnotation ;\n                    prov:wasGeneratedBy ?activity .\n                ?activity prov:wasAssociatedWith <https://bio.informatik.uni-jena.de/software/sirius> .\n                ?annotation emi:hasCosmicScore ?cosmic ;\n                    emi:hasZodiacScore ?zodiac .\n                FILTER((?cosmic > 0.5) && (?zodiac > 0.8))\n            } UNION {\n                ?feature emi:hasAnnotation ?annotation .\n                ?annotation emi:hasTaxoScore ?taxo .\n                FILTER(?taxo >= 6)\n            }\n            ?annotation emi:hasChemicalStructure ?ik2d .\n            ?ik2d emi:hasSMILES ?smiles ;\n                emi:isInChIKey2DOf ?ik .\n            ?ik emi:isInChIKeyOf ?wd_id .\n        }\n    }\n}",
-      "description": "Show chemical structures in Melochia umbellata extracts with structural annotations where the cosmic score is greater than 0.5 and the zodiac score is less than 0.8. For ISDB annotations, consider taxon scores less than 6",
-      "federatesWith": [
-        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
-        "https://query.wikidata.org/sparql"
-      ],
-      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
-    },
-    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/009": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\n\nSELECT ?extract ?organe ?species_name ?genus_name ?family_name ?count_of_selected_class\nWHERE {\n    ?material sosa:hasSample ?extract ;\n        sosa:isSampleOf ?organe .\n    ?organe emi:inTaxon ?wd_sp .\n    OPTIONAL {\n        SERVICE <https://query.wikidata.org/sparql> {\n            ?wd_sp wdt:P225 ?species_name .\n            ?family wdt:P31 wd:Q16521 ;\n                wdt:P105 wd:Q35409 ;\n                wdt:P225 ?family_name ;\n                ^wdt:P171* ?wd_sp .\n            ?genus wdt:P31 wd:Q16521 ;\n                wdt:P105 wd:Q34740 ;\n                wdt:P225 ?genus_name ;\n                ^wdt:P171* ?wd_sp .\n        }\n    }\n    {\n        SELECT ?extract (COUNT(DISTINCT ?feature) AS ?count_of_selected_class)\n        WHERE {\n            ?extract a emi:ExtractSample ;\n                sosa:isFeatureOfInterestOf ?lcms .\n            ?lcms a emi:LCMSAnalysis ;\n                emi:hasLCMSFeatureSet ?feature_list .\n            ?feature_list emi:hasLCMSFeature ?feature .\n            ?feature emi:hasAnnotation ?canopus .\n            ?canopus a emi:ChemicalTaxonAnnotation ;\n                emi:hasClass ?np_class ;\n                emi:hasClassProbability ?class_prob .\n            ?np_class rdfs:label \"Aspidosperma type\" .\n            FILTER((?class_prob > 0.5)) .\n        } GROUP BY ?extract ORDER BY DESC(?count_of_selected_class)\n    }\n}",
-      "description": "Which samples have features annotated as Aspidosperma_type alkaloids by CANOPUS with a probability score above 0.5, ordered by the decreasing count of features?",
-      "federatesWith": [
-        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
-        "https://query.wikidata.org/sparql"
-      ],
-      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
-    },
-    "https://sparql.omabrowser.org/.well-known/sparql-examples/14": {
-      "query": "PREFIX oma: <http://omabrowser.org/ontology/oma#>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX sio: <http://semanticscience.org/resource/>\nPREFIX lscr: <http://purl.org/lscr#>\nPREFIX mbgd: <http://purl.jp/bio/11/mbgd#>\n\nSELECT ?protein2 ?species WHERE {\n  SERVICE <http://sparql.nibb.ac.jp/sparql> {\n    SELECT ?protein2 ?species WHERE {\n      ?cluster_mbgd a orth:OrthologsCluster ;\n          orth:hasHomologous ?node1_mbgd ;\n        orth:hasHomologous ?node2_mbgd .\n      ?node1_mbgd orth:hasHomologous* ?gene1 .\n      ?node2_mbgd orth:hasHomologous* ?gene2 .\n      ?gene1 mbgd:uniprot <http://purl.uniprot.org/uniprot/K9Z723> .\n      ?gene2 mbgd:uniprot ?protein2 ;\n        mbgd:organism ?taxon .\n      OPTIONAL {\n        ?taxon mbgd:species ?species .\n      }\n      FILTER (?node1_mbgd != ?node2_mbgd)\n    }\n  }\n  FILTER NOT EXISTS { # keep only those that do not exist in OMA\n    ?cluster a orth:OrthologsCluster ;\n      orth:hasHomologousMember ?node1 ;\n      orth:hasHomologousMember ?node2 .\n    ?node1 orth:hasHomologousMember* ?protein_OMA_1.\n    ?node2 orth:hasHomologousMember* ?protein_OMA_2.\n    ?protein_OMA_1 lscr:xrefUniprot <http://purl.uniprot.org/uniprot/K9Z723>.\n    ?protein_OMA_2 lscr:xrefUniprot ?protein2.\n    FILTER (?node1 != ?node2)\n  }\n}",
-      "description": "Retrieve pairwise orthologous genes of the Cyanobacterium-aponinum psb27- gene that are found in the MBGD database but are not present in OMA",
-      "federatesWith": [
-        "https://sparql.omabrowser.org/sparql",
-        "http://sparql.nibb.ac.jp/sparql"
-      ],
-      "target": "https://sparql.omabrowser.org/sparql"
-    },
-    "https://sparql.omabrowser.org/.well-known/sparql-examples/3": {
-      "query": "PREFIX lscr: <http://purl.org/lscr#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT DISTINCT ?proteinOMA ?species ?mnemonic ?evidenceType ?UniProt_URI\nWHERE {\n    ?proteinOMA a orth:Protein ;\n        orth:organism/obo:RO_0002162/up:scientificName ?species ;\n        rdfs:label 'INS' .\n    ?proteinOMA lscr:xrefUniprot ?UniProt_URI .\n    # Search the INS gene mnemonics and evidence types from Uniprot database\n    SERVICE <https://sparql.uniprot.org/sparql> {\n        ?UniProt_URI up:mnemonic ?mnemonic ;\n            up:existence/rdfs:label ?evidenceType.\n    }\n}",
-      "description": "Retrieve all proteins in OMA that is encoded by the INS gene and their mnemonics and evidence types from Uniprot database (federated query).",
-      "federatesWith": [
-        "https://sparql.omabrowser.org/sparql",
-        "https://sparql.uniprot.org/sparql"
-      ],
-      "target": "https://sparql.omabrowser.org/sparql"
-    },
-    "https://sparql.orthodb.org/.well-known/sparql-examples/17": {
-      "query": "PREFIX up: <http://purl.uniprot.org/core/>\nPREFIX odbgroup: <http://purl.orthodb.org/odbgroup/>\nPREFIX : <http://purl.orthodb.org/>\n\nSELECT *\nWHERE {\n    ?gene a :Gene;\n        :memberOf odbgroup:6400at314295 .\n    ?gene :xref [a :Xref; :xrefResource ?xref] .\n    ?xref a :Uniprot .\n    SERVICE <https://sparql.uniprot.org/sparql> {\n        ?xref a up:Protein ;\n            up:recommendedName [up:fullName ?name] .\n    }\n}\n",
-      "description": "Find genes having Uniprot xrefs in the group 6400at314295, along with their names fetched from Uniprot SPARQL endpoint",
-      "federatesWith": [
-        "https://sparql.orthodb.org/sparql/",
-        "https://sparql.uniprot.org/sparql"
-      ],
-      "target": "https://sparql.orthodb.org/sparql/"
+      "target": "https://sparql.swisslipids.org/sparql/"
     },
     "https://sparql.orthodb.org/.well-known/sparql-examples/18": {
       "query": "PREFIX up: <http://purl.uniprot.org/core/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX GO: <http://purl.obolibrary.org/obo/GO_>\nPREFIX : <http://purl.orthodb.org/>\nPREFIX np: <http://nextprot.org/rdf#>\nPREFIX interpro: <http://www.ebi.ac.uk/interpro/entry/>\n\nSELECT ?gene_zf ?gene_zf_name ?gene ?gene_name ?description ?go ?disease\nWHERE {\n\tSERVICE <https://sparql.nextprot.org/> {\n        select distinct ?entry ?disease WHERE {\n            ?entry np:isoform / np:disease / rdfs:comment ?disease\n        }\n    }\n    ?gene rdfs:seeAlso ?entry;\n        :name ?gene_name ;\n        :description ?description.\n    ?gene :memberOf ?og .\n    ?og :xref/:xrefResource interpro:IPR000719 , GO:0048013.\n    ?og :ogBuiltAt/up:scientificName \"Vertebrata\";\n        :hasMember ?gene_zf.\n    ?gene_zf :name ?gene_zf_name;\n        up:organism/a [up:scientificName \"Danio rerio\"].\n} ORDER BY ?disease\n",
@@ -281,9 +87,18 @@
       "description": "Find distribution of oxidation reactions catalyzed by genes arranged into several Eukaryota-level orthologous groups annotated with IPR002328 across species in Alveolata, Stramenopiles, Liliopsida and Coleoptera via cooperation with both Uniprot SPARQL endpoint and RHEA SPARQL endpoint",
       "federatesWith": [
         "https://sparql.orthodb.org/sparql/",
-        "https://sparql.uniprot.org/sparql",
+        "https://sparql.rhea-db.org/sparql",
         "https://sparql.orthodb.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.orthodb.org/sparql/"
+    },
+    "https://sparql.orthodb.org/.well-known/sparql-examples/17": {
+      "query": "PREFIX up: <http://purl.uniprot.org/core/>\nPREFIX odbgroup: <http://purl.orthodb.org/odbgroup/>\nPREFIX : <http://purl.orthodb.org/>\n\nSELECT *\nWHERE {\n    ?gene a :Gene;\n        :memberOf odbgroup:6400at314295 .\n    ?gene :xref [a :Xref; :xrefResource ?xref] .\n    ?xref a :Uniprot .\n    SERVICE <https://sparql.uniprot.org/sparql> {\n        ?xref a up:Protein ;\n            up:recommendedName [up:fullName ?name] .\n    }\n}\n",
+      "description": "Find genes having Uniprot xrefs in the group 6400at314295, along with their names fetched from Uniprot SPARQL endpoint",
+      "federatesWith": [
+        "https://sparql.orthodb.org/sparql/",
+        "https://sparql.uniprot.org/sparql"
       ],
       "target": "https://sparql.orthodb.org/sparql/"
     },
@@ -296,342 +111,14 @@
       ],
       "target": "https://sparql.orthodb.org/sparql/"
     },
-    "https://sparql.rhea-db.org/.well-known/sparql-examples/11": {
-      "query": "PREFIX ec: <http://purl.uniprot.org/enzyme/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n\n# Query 11\n# Retrieve the count of reactions mapped to each level (main class) of the enzyme classification\n#\n# This query mimics the Filter section of the Rhea website (Browse all reactions)\n# https://www.rhea-db.org/rhea?query=\nSELECT ?ecClass (STR(?ecName) AS ?ecClassName) (COUNT(?rhea) AS ?rheaCount)\nWHERE {\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    VALUES (?ecClass) { (ec:1.-.-.-)(ec:2.-.-.-)(ec:3.-.-.-)(ec:4.-.-.-)(ec:5.-.-.-) (ec:6.-.-.-) (ec:7.-.-.-)}\n    ?ecNumber rdfs:subClassOf ?ecClass .\n    ?ecClass skos:prefLabel ?ecName .\n  }\n  ?rhea rdfs:subClassOf rh:Reaction .\n  ?rhea rh:ec ?ecNumber .\n} GROUP BY ?ecClass ?ecName",
-      "description": "Distribution of reactions according to the first class of the enzyme classification (federated query)",
+    "https://www.bgee.org/sparql/.well-known/sparql-examples/020": {
+      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX genex: <http://purl.org/genex#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX sio: <http://semanticscience.org/resource/>\n\nSELECT DISTINCT ?flyEnsemblGene ?orthologTaxon ?orthologEnsemblGene ?orthologOmaLink WHERE {\n\t{\n        SELECT DISTINCT ?gene ?flyEnsemblGene {\n        ?gene a orth:Gene ;\n            genex:isExpressedIn/rdfs:label 'eye' ;\n            orth:organism/obo:RO_0002162 ?taxon ;\n            dcterms:identifier ?flyEnsemblGene .\n        ?taxon up:commonName 'fruit fly' .\n        } LIMIT 100\n    }\n    SERVICE <https://sparql.omabrowser.org/sparql> {\n        ?protein2 a orth:Protein .\n        ?protein1 a orth:Protein .\n        ?clusterPrimates a orth:OrthologsCluster .\n        ?cluster a orth:OrthologsCluster ;\n            orth:hasHomologousMember ?node1 ;\n            orth:hasHomologousMember ?node2 .\n        ?node1 orth:hasHomologousMember* ?protein1 .\n        ?node2 orth:hasHomologousMember* ?clusterPrimates .\n        ?clusterPrimates orth:hasHomologousMember* ?protein2 .\n        ?protein1 sio:SIO_010079 ?gene . # is encoded by\n        ?protein2 rdfs:seeAlso ?orthologOmaLink ;\n            orth:organism/obo:RO_0002162 ?orthologTaxonUri ;\n            sio:SIO_010079 ?orthologGene . # is encoded by\n        ?clusterPrimates orth:hasTaxonomicRange ?taxRange .\n        ?taxRange orth:taxRange 'Primates' .\n        FILTER ( ?node1 != ?node2 )\n    }\n    ?orthologTaxonUri up:commonName ?orthologTaxon .\n    ?orthologGene dcterms:identifier ?orthologEnsemblGene .\n}",
+      "description": "Which are the genes in Primates orthologous to a gene that is expressed in the fruit fly's eye?",
       "federatesWith": [
-        "https://sparql.rhea-db.org/sparql",
-        "https://sparql.uniprot.org/sparql"
-      ],
-      "target": "https://sparql.rhea-db.org/sparql"
-    },
-    "https://sparql.rhea-db.org/.well-known/sparql-examples/12": {
-      "query": "PREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Query 12\n# Select all Rhea reactions used to annotate enzyme sequences in UniProtKB\n# return the number of UniProtKB entries\n# Federated query using a service to UniProt SPARQL endpoint\n#\n# This query corresponds to the Rhea website query:\n# https://www.rhea-db.org/rhea?query=uniprot:*\n#\nSELECT ?uniprotCount ?rhea ?accession ?equation \nWHERE {\n  SERVICE <https://sparql.uniprot.org/sparql> { \n  \tSELECT ?rhea (count(?uniprot) as ?uniprotCount) {\n      ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea . \n  \t}\n  \tGROUP BY ?rhea\n  }\n  ?rhea rh:accession ?accession .\n  ?rhea rh:equation ?equation .\n}",
-      "description": "Select all Rhea reactions linked to protein sequences (enzymes and transporters) in UniProtKB",
-      "federatesWith": [
-        "https://sparql.rhea-db.org/sparql",
-        "https://sparql.uniprot.org/sparql"
-      ],
-      "target": "https://sparql.rhea-db.org/sparql"
-    },
-    "https://sparql.rhea-db.org/.well-known/sparql-examples/13": {
-      "query": "PREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Query 13\n# Select all Rhea reactions used to annotate Escherichia coli (taxid=83333) in UniProtKB/Swiss-Prot\n# return the number of UniProtKB entries\n# \n# Federated query using a service to UniProt SPARQL endpoint\n#\n# This query cannot be performed using the Rhea search website\nSELECT ?uniprot ?mnemo ?rhea ?accession ?equation \nWHERE {\n  SERVICE <https://sparql.uniprot.org/sparql> { \n    VALUES (?taxid) { (taxon:83333) }\n    GRAPH <http://sparql.uniprot.org/uniprot> {\n      ?uniprot up:reviewed true . \n      ?uniprot up:mnemonic ?mnemo . \n      ?uniprot up:organism ?taxid .\n      ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea . \n    }\n  }\n  ?rhea rh:accession ?accession .\n  ?rhea rh:equation ?equation .\n}",
-      "description": "Select all Rhea reactions used in UniProtKB/Swiss-Prot for a given organism (NCBI taxonomy ID).",
-      "federatesWith": [
-        "https://sparql.rhea-db.org/sparql",
-        "https://sparql.uniprot.org/sparql"
-      ],
-      "target": "https://sparql.rhea-db.org/sparql"
-    },
-    "https://sparql.rhea-db.org/.well-known/sparql-examples/18": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\n\n\nSELECT \n  ?rhea \n  ?chebi\nWHERE {\n  SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/chebi> {\n    ?chebi sachem:substructureSearch [\n        sachem:query \"[C@]12(CCC3CCCC[C@]3(C)[C@@]1([H])CC[C@]1(C)[C@@]([H])([C@@](C)([H])CCCC(C)C)CC[C@@]21[H])[H]\" ].\n  }\n  ?rhea rh:side/rh:contains/rh:compound/rdfs:subClassOf ?chebi .\n}",
-      "description": "Use <a href=\"https://idsm.elixir-czech.cz/sparql\">IDSM Sachem</a> to find ChEBIs with a a <a href=\"https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:35516\">Cholestane</a> skeleton (in SMILES). Then match returned ChEBIs to Rhea undirected reactions.",
-      "federatesWith": [
-        "https://sparql.rhea-db.org/sparql",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/chebi"
-      ],
-      "target": "https://sparql.rhea-db.org/sparql"
-    },
-    "https://sparql.rhea-db.org/.well-known/sparql-examples/draft_human_metabolome": {
-      "query": "PREFIX chebislash: <http://purl.obolibrary.org/obo/chebi/>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  ?uniprot ?mnemonic ?rhea ?chebi ?smiles ?inchiKey\nWHERE\n{\n  ?rhea rh:side/rh:contains/rh:compound ?compound .\n  ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?chebi .\n  ?chebi chebislash:smiles ?smiles ;\n          chebislash:inchikey ?inchiKey .\n  SERVICE <https://sparql.uniprot.org/sparql> {\n     ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea ;\n                                             up:organism taxon:9606 ;\n                                             up:mnemonic ?mnemonic .\n\n   }\n}",
-      "description": "Generate a draft human metabolome",
-      "federatesWith": [
-        "https://sparql.rhea-db.org/sparql/",
-        "https://sparql.uniprot.org/sparql"
-      ],
-      "target": "https://sparql.rhea-db.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/draft_human_metabolome": {
-      "query": "PREFIX chebislash: <http://purl.obolibrary.org/obo/chebi/>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n?uniprot ?mnemonic ?rhea ?chebi ?smiles ?inchiKey\nWHERE\n{\n  ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea ;\n        up:organism taxon:9606 ;\n        up:mnemonic ?mnemonic .\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n\t?rhea rh:side/rh:contains/rh:compound ?compound .\n    ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?chebi .\n   }\n   ?chebi chebislash:smiles ?smiles ;\n          chebislash:inchikey ?inchiKey .\n}",
-      "description": "Generate a draft human metabolome",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.rhea-db.org/.well-known/sparql-examples/search_chemical_names_in_japanese": {
-      "query": "PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT\n*\nWHERE {\nSERVICE <https://data.allie.dbcls.jp/sparql>{\n        ?x rdfs:label \"1,2,4-トリクロロベンゼン\"@ja ;\n            rdfs:label ?englishLabel .\n        FILTER(lang(?englishLabel) = \"en\")\n    }\n  BIND(STR(?englishLabel) AS ?englishLabelStr)\n  ?chebi rdfs:label|oboInOwl:hasSynonym ?englishLabelStr .\n}",
-      "description": "Search for Chemical names starting in Japanese, translated to english using allie",
-      "federatesWith": [
-        "https://sparql.rhea-db.org/sparql/",
-        "https://data.allie.dbcls.jp/sparql"
-      ],
-      "target": "https://sparql.rhea-db.org/sparql/"
-    },
-    "https://sparql.swisslipids.org/.well-known/sparql-examples/26": {
-      "query": "PREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?swisslipid  ?organism {\n  ?swisslipid owl:equivalentClass ?chebi .\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?rhea rh:side/rh:contains/rh:compound ?compound .\n    ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?metabolite .\n  }\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?catalyticActivityAnnotation up:catalyticActivity/up:catalyzedReaction ?rhea .\n    ?protein up:annotation ?catalyticActivityAnnotation ;\n             up:organism ?organism .\n  }\n}",
-      "description": "Lipids produced in different organisms",
-      "federatesWith": [
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.uniprot.org/sparql",
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.swisslipids.org/sparql/"
-    },
-    "https://sparql.swisslipids.org/.well-known/sparql-examples/27": {
-      "query": "PREFIX SWISSLIPID: <https://swisslipids.org/rdf/SLM_>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?swisslipid  ?organism {\n  ?swisslipid owl:equivalentClass ?chebi .\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?rhea rh:side/rh:contains/rh:compound ?compound .\n    ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?metabolite .\n  }\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?catalyticActivityAnnotation up:catalyticActivity/up:catalyzedReaction ?rhea .\n    ?protein up:annotation ?catalyticActivityAnnotation ;\n             up:organism ?organism .\n  }\n  ?swisslipidIsomericSubpecies rdfs:subClassOf ?swisslipid ;\n        SWISSLIPID:rank SWISSLIPID:Isomeric_Subspecies .\n}",
-      "description": "Find the list of SwissLipids for all organisms and their Isomeric subspecies",
-      "federatesWith": [
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.uniprot.org/sparql",
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.swisslipids.org/sparql/"
-    },
-    "https://sparql.swisslipids.org/.well-known/sparql-examples/34": {
-      "query": "PREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?swisslipid  {\n  ?swisslipid owl:equivalentClass ?chebi .\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?rhea rh:side/rh:contains/rh:compound ?compound .\n\t?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?metabolite . \n  }\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?catalyticActivityAnnotation up:catalyticActivity/up:catalyzedReaction ?rhea .\n    ?protein up:annotation ?catalyticActivityAnnotation ;\n             up:organism taxon:9606 .\n  }\n}",
-      "description": "Lipids affected by human enzymes",
-      "federatesWith": [
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.uniprot.org/sparql",
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.swisslipids.org/sparql/"
-    },
-    "https://sparql.swisslipids.org/.well-known/sparql-examples/5": {
-      "query": "PREFIX SWISSLIPID: <https://swisslipids.org/rdf/SLM_>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\n\n# Example 5\nSELECT ?startId ?startName ?id ?name ?chebi ?rhea ?rheaEquation \nWHERE\n{\n  # SwissLipids query (list of) identifier(s)\n  VALUES ?startId { SWISSLIPID:000399814 }\n  # name\n  ?startId rdfs:label ?startName .\n  # Retrieve children lipids \n  ?id rdfs:subClassOf* ?startId .\n  ?id rdfs:label ?name .\n  # ChEBI x-ref\n  ?id owl:equivalentClass ?chebi .\n  # federated query to Rhea\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n  \t?rhea rh:equation ?rheaEquation .\n  \t?rhea rh:side/rh:contains/rh:compound/rh:chebi ?chebi .\n  }    \n} \nORDER BY  ?startId ?id",
-      "description": "For a given lipid (SWISSLIPID:000399814, Ceramide), return a list of all corresponding reactions (Rhea IDs and equation).\nThis query does consider the hierarchy: it looks for reactions involving the specified lipid and/or its more specific forms.",
-      "federatesWith": [
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.swisslipids.org/sparql/"
-    },
-    "https://sparql.swisslipids.org/.well-known/sparql-examples/6": {
-      "query": "PREFIX SWISSLIPID: <https://swisslipids.org/rdf/SLM_>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Example 6\nSELECT ?startId ?startName ?chebi ?rhea ?rheaEquation ?uniprot ?uniprotName\nWHERE\n{\n  # SwissLipids query (list of) identifier(s)\n  VALUES ?startId { SWISSLIPID:000399814 }\n  # name\n  ?startId rdfs:label ?startName .\n  # ChEBI x-ref\n  ?startId owl:equivalentClass ?chebi .\n  # federated query to Rhea\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n  \t?rhea rh:equation ?rheaEquation .\n  \t?rhea rh:side/rh:contains/rh:compound/rh:chebi ?chebi .\n  }    \n  # federated query to UniProt\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?uniprot up:reviewed true .\n    ?uniprot up:recommendedName/up:fullName ?uniprotName .\n    ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea .\n  }\n} \nORDER BY ?startId",
-      "description": "For a given lipid (SWISSLIPID:000399814, Ceramide), return a list of all corresponding reactions (Rhea IDs and equation), as well as their enzymes as annotated in UniProtKB/Swiss-Prot) enzymes themselves (ID and protein name).\nThis query does not consider the hierarchy: it looks for reactions and enzymes only for the specified lipid.",
-      "federatesWith": [
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.uniprot.org/sparql",
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.swisslipids.org/sparql/"
-    },
-    "https://sparql.swisslipids.org/.well-known/sparql-examples/7": {
-      "query": "PREFIX SWISSLIPID: <https://swisslipids.org/rdf/SLM_>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Example 7\nSELECT ?startId ?startLabel ?id ?name \nWHERE {\n  # Queried lipid species\n  VALUES ?startId { SWISSLIPID:000056871 }\n  ?startId rdfs:label ?startLabel . \n  # Corresponding Isomeric subspecies\n  ?id rdfs:subClassOf+ ?startId .  \n  ?id SWISSLIPID:rank SWISSLIPID:Isomeric_Subspecie ;\n\t  rdfs:label ?name .\n  # Mapped ChEBI\n  ?id owl:equivalentClass ?chebi .  \n  # federated query to Rhea\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n  \t?rhea rh:equation ?rheaEquation .\n  \t?rhea rh:side/rh:contains/rh:compound/rh:chebi ?chebi .\n  }    \n  # federated query to UniProt\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    ?uniprot up:reviewed true .\n    ?uniprot up:recommendedName/up:fullName ?uniprotName .\n    ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea .\n  }\n}",
-      "description": "For a given list of lipid Species, return a list of the corresponding Isomeric subspecies for that particular lipid that are linked to an enzyme as annotated in UniProtKB (UniProt AC and recommended name).\nThis question would allow a user with (a list of) very high level MS identifications to immediately narrow them to the most likely potential lipid structures and protein targets as in this example: SWISSLIPID:000056871 / PC(O-36:4) (target species of interest) -> SWISSLIPID:000028143 / PC(O-16:0/20:4(5Z,8Z,11Z,14Z)) -> LPCAT4, PLA2G4A, PLA2G4C, PLA2G4F (target proteins)",
-      "federatesWith": [
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.uniprot.org/sparql",
-        "https://sparql.swisslipids.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.swisslipids.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/29": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?protein ?englishLabelStr\nWHERE {\n    SERVICE <https://data.allie.dbcls.jp/sparql>{\n        ?x rdfs:label \"アミロイド前駆体タンパク質\"@ja ;\n            rdfs:label ?englishLabel .\n        FILTER(lang(?englishLabel) = \"en\")\n    }\n    BIND (STR(?englishLabel) AS ?englishLabelStr)\n    ?protein a up:Protein .\n    {\n        ?protein (up:recommendedName|up:alternativeName) ?structuredName .\n    }\n    UNION\n    {\n        VALUES(?partType){(up:domain) (up:component)}\n            ?protein ?partType ?part .\n        ?part (up:recommendedName|up:alternativeName) ?structuredName .\n    }\n    ?structuredName ?anyKindOfName  ?englishLabelStr .\n    ?anyKindOfName rdfs:subPropertyOf up:structuredNameType .\n}",
-      "description": "Use <a href=\"http://allie.dbcls.jp/\">ALLIE</a> a service for Abbreviation / Long Form in Japanese and English to search in UniProt using Japanese.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://data.allie.dbcls.jp/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/36": {
-      "query": "PREFIX orthodb: <http://purl.orthodb.org/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX uniprotkb: <http://purl.uniprot.org/uniprot/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  ?protein\n  ?orthoGroup\n  ?scientificName\n  ?functionComment\n  ?prefferedGeneName\n  ((STRLEN(?value) - ?medianLength) as ?deviationFromMedianLength)\nWHERE\n{\n  uniprotkb:P05067 a up:Protein ;\n        up:organism/up:scientificName ?scientificName ;\n        rdfs:seeAlso ?orthoGroup ;\n        up:encodedBy/skos:prefLabel ?prefferedGeneName ;\n          up:sequence/rdf:value ?value .\n  OPTIONAL {\n    ?protein up:annotation ?functionAnnotation .\n    ?functionAnnotation a up:Function_Annotation ;\n      rdfs:comment ?functionComment .\n  }\n  SERVICE <https://sparql.orthodb.org/sparql>{\n    ?orthoGroup orthodb:ogMedianProteinLength ?medianLength .\n    ?orthoGroup orthodb:hasMember ?xref .\n    ?xref orthodb:xref/orthodb:xrefResource uniprotkb:P05067 .\n  }\n}",
-      "description": "Find the orthologous proteins for UniProtKB entry P05067 using the <a href=\"http://www.orthod.org\">OrthoDB database</a>",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.orthodb.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/38": {
-      "query": "PREFIX p: <http://www.wikidata.org/prop/>\nPREFIX pq: <http://www.wikidata.org/prop/qualifier/>\nPREFIX ps: <http://www.wikidata.org/prop/statement/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX uniprotkb: <http://purl.uniprot.org/uniprot/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\n\n\nSELECT \n\t?protein \n\t?begin\n\t?end\n\t?chromosome\n\t?assembly\nWHERE {\n    {\n        BIND(uniprotkb:P05067 AS ?proteinIRI)\n        BIND (SUBSTR(STR(?proteinIRI), STRLEN(STR(uniprotkb:))+1) AS ?protein)\n    }\n    SERVICE <https://query.wikidata.org/sparql> {\n        ?wp wdt:P352 ?protein ;\n            wdt:P702 ?wg . \n        ?wg p:P644   ?wgss .\n        ?wgss ps:P644        ?begin ;\n          pq:P1057/wdt:P1813 ?chromosome ;\n          pq:P659/rdfs:label ?assembly .\n        ?wg p:P645 ?wgse .\n        ?wgse ps:P645        ?end ;\n          pq:P1057/wdt:P1813 ?chromosome ;\n          pq:P659/rdfs:label ?assembly .\n        FILTER(lang(?assembly) = \"en\")\n  } \n}",
-      "description": "For the human entry P05067 (Amyloid-beta precursor protein) find the gene start ends in WikiData",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://query.wikidata.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/40": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT DISTINCT ?protein ?chemblEntry\nWHERE {\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?rhea rdfs:subClassOf rh:Reaction ;\n      rh:side/rh:contains/rh:compound/rh:chebi/rdfs:subClassOf+ CHEBI:26739 .\n  }\n  ?ca up:catalyzedReaction ?rhea .\n  ?protein up:annotation/up:catalyticActivity ?ca ;\n    up:organism taxon:9606 ;\n    rdfs:seeAlso ?chemblEntry .\n  ?chemblEntry up:database <http://purl.uniprot.org/database/ChEMBL> .\n}",
-      "description": "Retrieve human enzymes that metabolize sphingolipids and are annotated in ChEMBL",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/42": {
-      "query": "PREFIX patent: <http://data.epo.org/linked-data/def/patent/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?citation ?patent ?application ?applicationNo\nWHERE\n{\n  ?citation a up:Patent_Citation ;\n    skos:exactMatch ?patent .\n  FILTER(CONTAINS(STR(?patent), 'EP'))\n  BIND(SUBSTR(STR(?patent), 35) AS ?applicationNo)\n  SERVICE <https://data.epo.org/linked-data/query>{\n    ?application patent:publicationNumber ?applicationNo\n  }\n}",
-      "description": "Connect patents cited in UniProtKB with those in the patent database at EPO via publication number.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://data.epo.org/linked-data/query"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/43": {
-      "query": "PREFIX patent: <http://data.epo.org/linked-data/def/patent/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT ?grantDate ?patent ?application ?applicationNo\nWHERE\n{\n    ?citation a up:Patent_Citation ;\n  skos:exactMatch ?patent .\n  BIND(SUBSTR(STR(?patent), 35) AS ?applicationNo)\n  BIND(SUBSTR(STR(?patent), 33, 2) AS ?countryCode)\n  SERVICE <https://data.epo.org/linked-data/query>{\n    ?publication patent:publicationNumber ?applicationNo ;\n      patent:application ?application .\n    ?application patent:grantDate ?grantDate .\n  }\n  BIND((year(now()) - 20) AS ?thisYearMinusTwenty)\n  BIND(year(?grantDate) AS ?grantYear)\n  FILTER(?grantYear < ?thisYearMinusTwenty)\n} ORDER BY ?grantYear",
-      "description": "Connect patents cited in UniProtKB with those in the patent database at EPO via publication number, whose grant date is more than twenty years in the past.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://data.epo.org/linked-data/query"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/45": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX chebihash: <http://purl.obolibrary.org/obo/chebi#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX uniprotkb: <http://purl.uniprot.org/uniprot/>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\n\nSELECT DISTINCT ?protein ?proteinFullName ?wikiChemical ?wikiChemicalLabel ?medicalConditionTreatedLabel\nWHERE {\n  # ChEBI: retrieve members of the ChEBI class ChEBI:15889 (sterol)\n  # Rhea: retrieve the reactions involving these ChEBI as participants\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?reaction rdfs:subClassOf rh:Reaction ;\n      rh:status rh:Approved ;\n      rh:side ?reactionSide .\n    ?reactionSide\n      rh:contains ?participant .\n    ?participant rh:compound ?compound\n    {\n      ?compound rh:chebi ?chebi .\n      ?chebi (rdfs:subClassOf)+ CHEBI:15889\n    } UNION {\n      ?compound rh:chebi ?chebi .\n      ?chebi2 rdfs:subClassOf ?chebiRestriction .\n      ?chebiRestriction\n\t\ta owl:Restriction ;\n\t\towl:onProperty chebihash:has_major_microspecies_at_pH_7_3 ;\n\t\towl:someValuesFrom ?chebi .\n      ?chebi2 (rdfs:subClassOf)+ CHEBI:15889\n    }\n  }\n  # UniProt: retrieve the human (taxid:9606) enzymes catalyzing these Rhea reactions\n  ?ca up:catalyzedReaction  ?reaction .\n  ?a up:catalyticActivity  ?ca .\n  ?proteinIRI  up:annotation ?a ;\n    up:organism taxon:9606 ;\n    up:recommendedName ?proteinRecName .\n  ?proteinRecName up:fullName ?proteinFullName .\n  # Find drugs in wikidata that interact with the UniProt Proteins\n  BIND (SUBSTR(STR(?proteinIRI), STRLEN(STR(uniprotkb:))+1) AS ?protein)\n  SERVICE <https://query.wikidata.org/sparql> {\n    ?wp wdt:P352  ?protein .\n    ?wikiChemical wdt:P129 ?wp . # Physically interacts with\n    ?wikiChemical rdfs:label ?wikiChemicalLabel .\n    ?wikiChemical wdt:P2175 ?wmc . # Medical conndition treated\n    ?wmc rdfs:label ?medicalConditionTreatedLabel .\n    FILTER(lang(?medicalConditionTreatedLabel) = 'en')\n    FILTER(lang(?wikiChemicalLabel) = 'en')\n  }\n}",
-      "description": "Retrieve drugs that target human enzymes involved in sterol metabolism (federated query with WikiData and Rhea).",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql",
-        "https://sparql.uniprot.org/sparql/",
-        "https://query.wikidata.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/46": {
-      "query": "PREFIX eunisSpecies: <http://eunis.eea.europa.eu/rdf/species-schema.rdf#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT \n    ?taxon\n    ?ncbiTaxid\n    ?eunisTaxon\n    ?eunisName \n    ?image\nWHERE\n{\n    GRAPH <http://sparql.uniprot.org/taxonomy>\n    {\n        ?taxon a up:Taxon .\n        # Taxon subclasses are materialized, do not use rdfs:subClassOf+\n        ?taxon rdfs:subClassOf taxon:8835 .\n        BIND(strafter(str(?taxon), 'onomy/') AS ?ncbiTaxid)\n    }\n    SERVICE <https://semantic.eea.europa.eu/sparql>\n    {\n        ?eunisTaxon a eunisSpecies:SpeciesSynonym ;\n           eunisSpecies:binomialName ?eunisName ;\n           eunisSpecies:sameSpeciesNCBI ?ncbiTaxid ;\n           <http://xmlns.com/foaf/0.1/depiction> ?image .\n    }\n}",
-      "description": "Retrieve images of 'Anas' (Ducks) from the European Environmental Agency databases (federated query).",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://semantic.eea.europa.eu/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/48": {
-      "query": "PREFIX faldo: <http://biohackathon.org/resource/faldo#>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX glycan: <http://purl.jp/bio/12/glyco/glycan#>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n        DISTINCT\n            ?protein ?glycosite ?glycostructure ?glycoimage\nWHERE{\n  ?protein up:annotation ?annotation .\n  ?protein up:organism taxon:9606 .\n  ?annotation a up:Catalytic_Activity_Annotation .\n  ?protein up:sequence ?isoform .\n   \n  SERVICE <https://glyconnect.expasy.org/sparql> {\n    ?glycosite faldo:reference ?isoform .\n    ?glycosite faldo:position ?position .\n    ?specificglycosite faldo:location ?glycosite .\n    ?glycoprotein glycan:glycosylated_at ?specificglycosite .\n    ?glycostructure glycan:glycosylates_at ?specificglycosite .\n    ?glycostructure foaf:depiction ?glycoimage .\n  }\n}",
-      "description": "Retrieve glycosylation sites and glycans on human enzymes (federated with glyconnect)",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://glyconnect.expasy.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/49": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX genex: <http://purl.org/genex#>\nPREFIX lscr: <http://purl.org/lscr#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT DISTINCT ?protein ?ensemblGene ?reaction ?anatomicEntityLabel ?anatomicEntity\nWHERE {\n  # federated query to Rhea enadpoint\n  {\n    SELECT DISTINCT ?reaction WHERE {\n      SERVICE <https://sparql.rhea-db.org/sparql> {\n        ?reaction rdfs:subClassOf rh:Reaction ;\n          rh:equation ?reactionEquation ;\n          rh:side ?reactionSide .\n        ?reactionSide rh:contains ?participant .\n        ?participant rh:compound ?compound .\n        # compound constraint (CHEBI:16113 == cholesterol)\n        ?compound rh:chebi CHEBI:16113 .\n      }\n    }\n  }\n  # taxonomy constraint (taxon:9606 == Homo sapiens)\n  ?protein up:organism taxon:9606 ;\n    up:annotation ?a ;\n    rdfs:seeAlso / up:transcribedFrom ?ensemblGene .\n  ?a a up:Catalytic_Activity_Annotation ;\n    up:catalyticActivity ?ca .\n  ?ca up:catalyzedReaction ?reaction .\n  # federated query to Bgee (expression data)\n  BIND(IRI(REPLACE(STR(?ensemblGene), \"\\\\.[0-9]+$\", \"\")) AS ?ensemblGeneNoVersion)\n  SERVICE <https://www.bgee.org/sparql> {\n    ?gene lscr:xrefEnsemblGene ?ensemblGeneNoVersion ;\n      genex:isExpressedIn ?anatomicEntity .\n    ?anatomicEntity rdfs:label ?anatomicEntityLabel .\n  }\n}",
-      "description": "Retrieve the UniProt proteins, their catalyzed Rhea reactions, their encoding genes (Ensembl) and the anatomic entities where the genes are expressed (UBERON anatomic entites from Bgee expression data resource).",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql",
-        "https://sparql.uniprot.org/sparql/",
-        "https://www.bgee.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/50": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX genex: <http://purl.org/genex#>\nPREFIX lscr: <http://purl.org/lscr#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  DISTINCT\n    ?chebi\n    ?reaction\n    ?protein ?ensemblGene\n    ?anatomicEntityLabel\n    ?anatomicEntity\nWHERE {\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?reaction rdfs:subClassOf rh:Reaction .\n    ?reaction rh:equation ?reactionEquation .\n    ?reaction rh:side ?reactionSide .\n    ?reactionSide rh:contains ?participant .\n    ?participant rh:compound ?compound .\n    ?compound rh:chebi ?chebi .\n    ?chebi rdfs:subClassOf* CHEBI:52639\n}\n  ?protein up:organism taxon:9606 .\n  ?protein up:annotation ?a .\n  ?a a up:Catalytic_Activity_Annotation .\n  ?a up:catalyticActivity ?ca .\n  ?ca up:catalyzedReaction ?reaction .\n  ?protein rdfs:seeAlso / up:transcribedFrom ?ensemblGene .\n\n  SERVICE  <https://www.bgee.org/sparql> {\n    ?gene genex:isExpressedIn ?anatomicEntity .\n    ?gene lscr:xrefEnsemblGene ?ensemblGene .\n    ?anatomicEntity rdfs:label ?anatomicEntityLabel .\n  }\n}",
-      "description": "Where are the human genes encoding enzymes metabolizing N-acyl\nsphingosines expressed in the human body (federated query, with Rhea and Bgee)",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql",
-        "https://sparql.uniprot.org/sparql/",
-        "https://www.bgee.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/51": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n\nSELECT \n    DISTINCT\n        ?uniprot\n        ?uniprotID\n        ?recname\n        ?gene\n        ?chebi\n        ?uniprotName\nWHERE {\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n     VALUES (?chebi) { (CHEBI:32395) }\n     ?rhea rh:side/rh:contains/rh:compound ?compound .\n     ?compound rh:chebi ?chebi .\n     ?chebi up:name ?uniprotName .\n  }\n  ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea .\n  ?uniprot up:mnemonic ?uniprotID .\n  ?uniprot up:recommendedName/up:fullName ?recname .\n  OPTIONAL {?uniprot up:encodedBy/skos:prefLabel ?gene .}\n}",
-      "description": "Find all proteins linked to arachidonate (CHEBI:32395)",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/52": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX cco: <http://rdf.ebi.ac.uk/terms/chembl#>\nPREFIX chebihash: <http://purl.obolibrary.org/obo/chebi#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n        DISTINCT\n            ?protein\n            ?proteinFullName\n            ?activityType\n            ?standardActivityValue\n            ?standardActivityUnit\n            ?chemblMolecule\n            ?chemlbMoleculePrefLabel\nWHERE\n  {\n  # ChEBI: retrieve members of the ChEBI class ChEBI:15889 (sterol)\n  # Rhea: retrieve the reactions involving these ChEBI as participants\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?reaction rdfs:subClassOf  rh:Reaction ;\n\t      rh:status        rh:Approved ;\n\t      rh:side          ?reactionSide .\n    ?reactionSide\n\t      rh:contains      ?participant .\n    ?participant rh:compound  ?compound\n    {\n      ?compound  rh:chebi  ?chebi .\n      ?chebi (rdfs:subClassOf)+ CHEBI:15889\n    } UNION {\n      ?compound  rh:chebi           ?chebi .\n      ?chebi2   rdfs:subClassOf     ?chebiRestriction .\n      ?chebiRestriction\n\t\ta           owl:Restriction ;\n\t\towl:onProperty      chebihash:has_major_microspecies_at_pH_7_3 ;\n\t\towl:someValuesFrom  ?chebi .\n      ?chebi2 (rdfs:subClassOf)+ CHEBI:15889\n    }\n  }\n  # UniProt: retrieve the human (taxid:9606) enzymes catalyzing these Rhea reactions\n  ?ca       up:catalyzedReaction  ?reaction .\n  ?a        up:catalyticActivity  ?ca .\n  ?protein  up:annotation         ?a ;\n\t    up:organism           taxon:9606 ;\n\t    up:recommendedName    ?proteinRecName .\n  ?proteinRecName\n\t    up:fullName           ?proteinFullName .\n  # Find drugs in wikidata that interact with the UniProt Proteins\n  # ChEMBL: retrieve the corresponding targets and with drugs in clinical phase 4\n  # Via https://idsm.elixir-czech.cz/sparql/\n  SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/idsm> {\n    ?activity a cco:Activity ;\n      cco:hasMolecule ?chemblMolecule ;\n      cco:hasAssay ?assay ;\n      cco:standardType ?activityType ;\n      cco:standardValue ?standardActivityValue ;\n      cco:standardUnits ?standardActivityUnit .\n    ?chemblMolecule cco:highestDevelopmentPhase ?highestDevelopmentPhase ;\n      rdfs:label ?chemblMoleculeLabel ;\n      skos:prefLabel ?chemlbMoleculePrefLabel .\n    FILTER (?highestDevelopmentPhase > 3)\n    ?assay cco:hasTarget ?target .\n    ?target cco:hasTargetComponent/cco:targetCmptXref ?protein .\n    ?protein a cco:UniprotRef .\n  }\n}",
-      "description": "Retrieve drugs that target human enzymes involved in sterol metabolism (federated query with Rhea and ChEMBL via IDSM/Elixir czech republic).",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/idsm",
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/53": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX lscr: <http://purl.org/lscr#>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  DISTINCT\n    ?chebi\n    ?reaction\n    ?humanProtein\n    ?mouseProtein\n    ?cluster \nWHERE {\n  SERVICE <https://sparql.rhea-db.org/sparql> {\n    ?reaction rdfs:subClassOf rh:Reaction .\n    ?reaction rh:side/rh:contains/rh:compound ?compound .\n    ?compound rh:chebi ?chebi .\n    ?chebi rdfs:subClassOf* CHEBI:15889\n  }\n\n  ?humanProtein up:organism taxon:9606 .\n  ?humanProtein up:annotation ?a .\n  ?a a up:Catalytic_Activity_Annotation .\n  ?a up:catalyticActivity ?ca .\n  ?ca up:catalyzedReaction ?reaction .\n\n  SERVICE  <https://sparql.omabrowser.org/sparql> {\n    ?cluster a orth:ParalogsCluster .\n    ?cluster orth:hasHomologousMember ?node1 , ?node2 .\n    ?node1 orth:hasHomologousMember* ?orthoProtein1 .\n    ?node2 orth:hasHomologousMember* ?orthoProtein2 .\n    ?orthoProtein1 lscr:xrefUniprot ?mouseProtein .\n    ?orthoProtein2 lscr:xrefUniprot ?humanProtein .\n    # inTaxon mouse\n    ?orthoProtein1 orth:organism/<http://purl.obolibrary.org/obo/RO_0002162> taxon:10090 . \n  }\n}",
-      "description": "Find mouse homologs in OMABrowser of human enzymes that catalyze reactions involving Sterols (CHEBI:15889). Federating with Rhea-DB and OMABrowser.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql",
-        "https://sparql.uniprot.org/sparql/",
+        "https://www.bgee.org/sparql/",
         "https://sparql.omabrowser.org/sparql"
       ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/54": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT \n  ?protein\n  ?mnemonic\n  ?proteinName\n  ?ligandSimilarityScore\n  ?ligand\nWHERE {\n  SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/chebi> {\n    ?ssc sachem:compound ?ligand; \n      sachem:score ?ligandSimilarityScore ;\n      sachem:similaritySearch ?sss .\n        # Smiles of Heme\n    ?sss    sachem:query \"CC1=C(CCC([O-])=O)C2=[N+]3C1=Cc1c(C)c(C=C)c4C=C5C(C)=C(C=C)C6=[N+]5[Fe-]3(n14)n1c(=C6)c(C)c(CCC([O-])=O)c1=C2\";\n      sachem:cutoff \"8e-1\"^^xsd:double ;\n      sachem:aromaticityMode sachem:aromaticityDetect ;\n      sachem:similarityRadius 1 ;\n      sachem:tautomerMode sachem:ignoreTautomers .\n  }\n  ?protein up:mnemonic ?mnemonic ;\n    up:recommendedName/up:fullName ?proteinName ;\n    up:annotation ?annotation .\n  ?annotation a up:Binding_Site_Annotation ;\n      up:ligand/rdfs:subClassOf ?ligand .\n}\nORDER BY DESC(?ligandSimilarityScore)",
-      "description": "Proteins with annotated binding sites for ligands similar to heme",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/chebi"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/60": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  DISTINCT\n    ?protein\n    ?disease\n    ?rhea\n    ?chebi\n    ?omim\nWHERE {\n    # Find complete ChEBIs with a Cholestane skeleton, via the Czech Elixir node IDSM Sachem chemical substructure search.\n    SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/chebi> {\n      ?chebi sachem:substructureSearch [\n        sachem:query\n\"[C@]12(CCC3CCCC[C@]3(C)[C@@]1([H])CC[C@]1(C)[C@@]([H])([C@@](C)([H])CCCC(C)C)CC[C@@]21[H])[H]\"\n].\n   }\n   # Use the fact that UniProt catalytic activities are annotated using Rhea \n   # Mapping the found ChEBIs to Rhea reactions\n   SERVICE <https://sparql.rhea-db.org/sparql>{\n     ?rhea rh:side/rh:contains/rh:compound/rdfs:subClassOf ?chebi .\n   }\n   # Match the found Rhea reactions with human UniProtKB proteins\n   ?protein up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea .\n   ?protein up:organism taxon:9606 .\n   # Find only those human entries that have an annotated related disease, and optionaly map these to OMIM\n   ?protein up:annotation/up:disease ?disease .\n   OPTIONAL {\n     ?disease rdfs:seeAlso ?omim .\n     ?omim up:database <http://purl.uniprot.org/database/MIM>\n   }\n}",
-      "description": "Find Human proteins that catalyze reactions where substrates or product have a <a href=\"https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:35516\">Cholestane skeleton</a>",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.rhea-db.org/sparql",
-        "https://sparql.uniprot.org/sparql/",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/chebi"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/enzymes_interacting_with_molecules_similar_to_dopamine": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  ?protein\n  ?rhea\n  ?chebi\nWHERE {\n  # Use the smiles of dopamine CHEBI:18243\n  SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/chebi>{\n    ?chebi sachem:similarCompoundSearch [\n      sachem:query \"NCCc1ccc(O)c(O)c1\" ] .\n  }\n  GRAPH<https://sparql.rhea-db.org/rhea>{\n    ?rhea rh:side/rh:contains/rh:compound ?compound .\n    ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?chebi .\n  }\n  ?protein up:reviewed true ;\n    up:annotation ?caa .\n  ?caa up:catalyticActivity/up:catalyzedReaction ?rhea .\n}",
-      "description": "Look for enzymes catalyzing reactions with molecules similar to dopamine.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/chebi"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/enzymes_interacting_with_molecules_similar_to_dopamine_with_variants_related_to_disease": {
-      "query": "PREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  ?protein\n  ?rhea\n  ?chebi\n  ?disease\nWHERE {\n  # Use the smiles of dopamine CHEBI:18243\n  SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/chebi>{\n    ?chebi sachem:similarCompoundSearch [\n      sachem:query \"NCCc1ccc(O)c(O)c1\" ] .\n  }\n  GRAPH<https://sparql.rhea-db.org/rhea>{\n    ?rhea rh:side/rh:contains/rh:compound ?compound .\n    ?compound (rh:chebi|(rh:reactivePart/rh:chebi)|(rh:underlyingChebi/rh:chebi)) ?chebi .\n  }\n  ?protein up:reviewed true ;\n    up:annotation ?caa, ?natural_variant_annotation, ?disease_annotation .\n  ?caa up:catalyticActivity/up:catalyzedReaction ?rhea .\n  ?natural_variant_annotation a up:Natural_Variant_Annotation ;\n    skos:related ?disease .\n  ?disease_annotation a up:Disease_Annotation ;\n     up:disease ?disease .\n}",
-      "description": "Look for enzymes catalyzing reactions with molecules similar to dopamine, with natural variants related to a disease.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://idsm.elixir-czech.cz/sparql/endpoint/chebi"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/uniprot_affected_by_metabolic_diseases_using_MeSH": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n ?disease ?protein\nWHERE {\n  SERVICE<https://id.nlm.nih.gov/mesh/sparql> {\n    GRAPH <http://id.nlm.nih.gov/mesh> {\n      # Mesh M0013493 is a meaningless gathering about the concept 'Metabolic Diseases'\n\t  ?mesh <http://id.nlm.nih.gov/mesh/vocab#broaderDescriptor>* ?broader .\n      ?broader <http://id.nlm.nih.gov/mesh/vocab#preferredConcept> <http://id.nlm.nih.gov/mesh/M0013493> .\n    }\n  }\n  GRAPH <http://sparql.uniprot.org/diseases>{\n    ?disease a up:Disease ;\n    \trdfs:seeAlso ?mesh .\n    ?mesh up:database <http://purl.uniprot.org/database/MeSH> .\n  }\n  GRAPH <http://sparql.uniprot.org/uniprot> {\n     ?protein up:annotation/up:disease ?disease . \n  }\n}",
-      "description": "Proteins annotated in UniProtKB to be affected by metabolic diseases. Using the MeSH concept as a root to find metabolic diseases in UniProt.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://id.nlm.nih.gov/mesh/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/uniprot_bioregistry_iri_translation": {
-      "query": "PREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX uniprotkb: <http://purl.uniprot.org/uniprot/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT \n    ?protein \n    ?otherIdentifier\nWHERE {\n    BIND(uniprotkb:P00750 AS ?protein)\n    ?protein a up:Protein .\n    SERVICE <https://bioregistry.io/sparql> {\n        ?protein owl:sameAs ?otherIdentifier .\n    }\n}",
-      "description": "Translate the global unique identifier for a UniProt record into other options using the bioregistry translating endpoint.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://bioregistry.io/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/uniprot_identifiers_org_translation": {
-      "query": "PREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX uniprotkb: <http://purl.uniprot.org/uniprot/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT \n    ?protein \n    ?otherIdentifier\nWHERE {\n    VALUES (?protein) {(uniprotkb:P00750) (uniprotkb:P05067)}\n    ?protein a up:Protein .\n    SERVICE <https://sparql.api.identifiers.org/sparql> {\n        ?protein owl:sameAs ?otherIdentifier .\n    }\n}",
-      "description": "Translate the global unique identifier for a UniProt record into other options using the identifiers.org translating endpoint.",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://sparql.api.identifiers.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
-    },
-    "https://sparql.uniprot.org/.well-known/sparql-examples/uniprot_transporter_in_liver": {
-      "query": "PREFIX genex: <http://purl.org/genex#>\nPREFIX lscr: <http://purl.org/lscr#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX uberon: <http://purl.obolibrary.org/obo/uo#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT\n  ?rhea\n  ?protein\n  ?anat\nWHERE\n{\n  GRAPH <https://sparql.rhea-db.org/rhea> {\n    ?rhea rh:isTransport true .\n  }\n  ?protein up:annotation ?ann .\n  ?protein up:organism taxon:9606 .\n  ?ann up:catalyticActivity ?ca .\n  ?ca up:catalyzedReaction ?rhea .\n  BIND(uberon:0002107 AS ?anat)\n  SERVICE <https://www.bgee.org/sparql> {\n    ?seq genex:isExpressedIn ?anat .\n    ?seq lscr:xrefUniprot ?protein .\n    ?seq orth:organism ?organism .\n    ?organism obo:RO_0002162 taxon:9606 .\n  }\n}",
-      "description": "Find human transporter proteins in reviewed UniProtKB, that are expressed in the liver (Uses Bgee and UBERON).",
-      "federatesWith": [
-        "https://sparql.uniprot.org/sparql/",
-        "https://www.bgee.org/sparql"
-      ],
-      "target": "https://sparql.uniprot.org/sparql/"
+      "target": "https://www.bgee.org/sparql/"
     },
     "https://www.bgee.org/sparql/.well-known/sparql-examples/016": {
       "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX genex: <http://purl.org/genex#>\nPREFIX lscr: <http://purl.org/lscr#>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX sio: <http://semanticscience.org/resource/>\n\nSELECT ?gene ?omaLink ?uniprot ?diseaseLabel ?annotationText WHERE {\n    {\n        SELECT ?gene {\n            ?anat rdfs:label 'brain' .\n            ?gene genex:isExpressedIn ?anat ;\n                orth:organism/obo:RO_0002162 ?taxonRat .\n            ?taxonRat up:commonName 'rat' .\n        } LIMIT 20\n    }\n    SERVICE <https://sparql.uniprot.org/sparql> {\n        ?taxonHuman up:commonName 'Human' .\n    }\n    SERVICE <https://sparql.omabrowser.org/sparql/> {\n        ?cluster a orth:OrthologsCluster ;\n            orth:hasHomologousMember ?node1 ;\n            orth:hasHomologousMember ?node2 .\n        ?node2 orth:hasHomologousMember* ?protein2 .\n        ?node1 orth:hasHomologousMember* ?protein1 .\n        ?protein1 a orth:Protein ;\n            sio:SIO_010079 ?gene . # encoded by\n        ?protein2 a orth:Protein ;\n            rdfs:seeAlso ?omaLink ;\n            orth:organism/obo:RO_0002162 ?taxonHuman ;\n            lscr:xrefUniprot ?uniprot .\n        FILTER(?node1 != ?node2)\n    }\n    SERVICE <https://sparql.uniprot.org/sparql> {\n        ?uniprot up:annotation ?annotation .\n        ?annotation a up:Disease_Annotation ;\n            rdfs:comment ?annotationText ;\n            up:disease ?disease .\n        ?disease skos:prefLabel ?diseaseLabel .\n    }\n}",
@@ -653,15 +140,6 @@
       ],
       "target": "https://www.bgee.org/sparql/"
     },
-    "https://www.bgee.org/sparql/.well-known/sparql-examples/018": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX genex: <http://purl.org/genex#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX sio: <http://semanticscience.org/resource/>\nPREFIX lscr: <http://purl.org/lscr#>\n\nSELECT ?humanProtein ?mouseProtein ?mouseOmaLink {\n    {\n        ?humanTaxon up:commonName 'human' .\n        ?mouseTaxon up:commonName 'mouse' .\n    }\n    SERVICE <https://sparql.omabrowser.org/sparql> {\n        ?cluster a orth:OrthologsCluster ;\n            orth:hasHomologousMember ?node1 ;\n            orth:hasHomologousMember ?node2 .\n        ?node2 orth:hasHomologousMember* ?mouseProtein .\n        ?node1 orth:hasHomologousMember* ?humanProtein .\n        ?humanProtein a orth:Protein ;\n            rdfs:label 'INS' ;\n            orth:organism/obo:RO_0002162 ?humanTaxon .\n        ?mouseProtein a orth:Protein ;\n            sio:SIO_010079 ?mouseGene ; # is encoded by\n            orth:organism/obo:RO_0002162 ?mouseTaxon ;\n            rdfs:seeAlso ?mouseOmaLink .\n        ?mouseGene lscr:xrefEnsemblGene ?mouseGeneEnsembl .\n        FILTER ( ?node1 != ?node2 )\n    }\n    {\n        ?mouseGeneBgee a orth:Gene ;\n            lscr:xrefEnsemblGene ?mouseGeneEnsembl ;\n            genex:isExpressedIn ?cond ;\n            orth:organism/obo:RO_0002162 ?mouseTaxon .\n        ?cond genex:hasAnatomicalEntity/rdfs:label 'liver' .\n    }\n}",
-      "description": "Which are the mouse's proteins encoded by genes which are expressed in the liver and are orthologous to human's INS gene?",
-      "federatesWith": [
-        "https://www.bgee.org/sparql/",
-        "https://sparql.omabrowser.org/sparql"
-      ],
-      "target": "https://www.bgee.org/sparql/"
-    },
     "https://www.bgee.org/sparql/.well-known/sparql-examples/019": {
       "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX genex: <http://purl.org/genex#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX sio: <http://semanticscience.org/resource/>\n\nSELECT DISTINCT ?geneEnsembl ?proteinOrtholog ?geneOrthologEnsembl ?taxonOrtholog ?omaLinkOrtholog WHERE {\n    {\n        SELECT DISTINCT * {\n            ?gene a orth:Gene ;\n                genex:isExpressedIn/rdfs:label 'brain' ;\n                orth:organism/obo:RO_0002162 ?taxonFly ;\n                dcterms:identifier ?geneEnsembl .\n            ?taxonFly up:commonName 'fruit fly' .\n        } LIMIT 20\n    }\n\n    SERVICE <https://sparql.omabrowser.org/sparql/> {\n        ?cluster a orth:OrthologsCluster ;\n            orth:hasHomologousMember ?node1 ;\n            orth:hasHomologousMember ?node2 .\n        ?node1 orth:hasHomologousMember* ?protein1 .\n        ?node2 orth:hasHomologousMember* ?proteinOrtholog .\n        ?protein1 sio:SIO_010079 ?gene . # is encoded by\n        ?proteinOrtholog rdfs:seeAlso ?omaLinkOrtholog ;\n            orth:organism/obo:RO_0002162 ?taxonOrthologUri ;\n            sio:SIO_010079 ?geneOrtholog . # is encoded by\n        FILTER ( ?node1 != ?node2 )\n    }\n    ?taxonOrthologUri up:commonName ?taxonOrtholog .\n    ?geneOrtholog dcterms:identifier ?geneOrthologEnsembl .\n}",
       "description": "Which are the orthologs of a gene that is expressed in the fruit fly's brain?",
@@ -671,19 +149,127 @@
       ],
       "target": "https://www.bgee.org/sparql/"
     },
-    "https://www.bgee.org/sparql/.well-known/sparql-examples/020": {
-      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX genex: <http://purl.org/genex#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX sio: <http://semanticscience.org/resource/>\n\nSELECT DISTINCT ?flyEnsemblGene ?orthologTaxon ?orthologEnsemblGene ?orthologOmaLink WHERE {\n\t{\n        SELECT DISTINCT ?gene ?flyEnsemblGene {\n        ?gene a orth:Gene ;\n            genex:isExpressedIn/rdfs:label 'eye' ;\n            orth:organism/obo:RO_0002162 ?taxon ;\n            dcterms:identifier ?flyEnsemblGene .\n        ?taxon up:commonName 'fruit fly' .\n        } LIMIT 100\n    }\n    SERVICE <https://sparql.omabrowser.org/sparql> {\n        ?protein2 a orth:Protein .\n        ?protein1 a orth:Protein .\n        ?clusterPrimates a orth:OrthologsCluster .\n        ?cluster a orth:OrthologsCluster ;\n            orth:hasHomologousMember ?node1 ;\n            orth:hasHomologousMember ?node2 .\n        ?node1 orth:hasHomologousMember* ?protein1 .\n        ?node2 orth:hasHomologousMember* ?clusterPrimates .\n        ?clusterPrimates orth:hasHomologousMember* ?protein2 .\n        ?protein1 sio:SIO_010079 ?gene . # is encoded by\n        ?protein2 rdfs:seeAlso ?orthologOmaLink ;\n            orth:organism/obo:RO_0002162 ?orthologTaxonUri ;\n            sio:SIO_010079 ?orthologGene . # is encoded by\n        ?clusterPrimates orth:hasTaxonomicRange ?taxRange .\n        ?taxRange orth:taxRange 'Primates' .\n        FILTER ( ?node1 != ?node2 )\n    }\n    ?orthologTaxonUri up:commonName ?orthologTaxon .\n    ?orthologGene dcterms:identifier ?orthologEnsemblGene .\n}",
-      "description": "Which are the genes in Primates orthologous to a gene that is expressed in the fruit fly's eye?",
+    "https://www.bgee.org/sparql/.well-known/sparql-examples/018": {
+      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX genex: <http://purl.org/genex#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX sio: <http://semanticscience.org/resource/>\nPREFIX lscr: <http://purl.org/lscr#>\n\nSELECT ?humanProtein ?mouseProtein ?mouseOmaLink {\n    {\n        ?humanTaxon up:commonName 'human' .\n        ?mouseTaxon up:commonName 'mouse' .\n    }\n    SERVICE <https://sparql.omabrowser.org/sparql> {\n        ?cluster a orth:OrthologsCluster ;\n            orth:hasHomologousMember ?node1 ;\n            orth:hasHomologousMember ?node2 .\n        ?node2 orth:hasHomologousMember* ?mouseProtein .\n        ?node1 orth:hasHomologousMember* ?humanProtein .\n        ?humanProtein a orth:Protein ;\n            rdfs:label 'INS' ;\n            orth:organism/obo:RO_0002162 ?humanTaxon .\n        ?mouseProtein a orth:Protein ;\n            sio:SIO_010079 ?mouseGene ; # is encoded by\n            orth:organism/obo:RO_0002162 ?mouseTaxon ;\n            rdfs:seeAlso ?mouseOmaLink .\n        ?mouseGene lscr:xrefEnsemblGene ?mouseGeneEnsembl .\n        FILTER ( ?node1 != ?node2 )\n    }\n    {\n        ?mouseGeneBgee a orth:Gene ;\n            lscr:xrefEnsemblGene ?mouseGeneEnsembl ;\n            genex:isExpressedIn ?cond ;\n            orth:organism/obo:RO_0002162 ?mouseTaxon .\n        ?cond genex:hasAnatomicalEntity/rdfs:label 'liver' .\n    }\n}",
+      "description": "Which are the mouse's proteins encoded by genes which are expressed in the liver and are orthologous to human's INS gene?",
       "federatesWith": [
         "https://www.bgee.org/sparql/",
         "https://sparql.omabrowser.org/sparql"
       ],
       "target": "https://www.bgee.org/sparql/"
+    },
+    "https://sparql.rhea-db.org/.well-known/sparql-examples/12": {
+      "query": "PREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Query 12\n# Select all Rhea reactions used to annotate enzyme sequences in UniProtKB\n# return the number of UniProtKB entries\n# Federated query using a service to UniProt SPARQL endpoint\n#\n# This query corresponds to the Rhea website query:\n# https://www.rhea-db.org/rhea?query=uniprot:*\n#\nSELECT ?uniprotCount ?rhea ?accession ?equation \nWHERE {\n  SERVICE <https://sparql.uniprot.org/sparql> { \n  \tSELECT ?rhea (count(?uniprot) as ?uniprotCount) {\n      ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea . \n  \t}\n  \tGROUP BY ?rhea\n  }\n  ?rhea rh:accession ?accession .\n  ?rhea rh:equation ?equation .\n}",
+      "description": "Select all Rhea reactions linked to protein sequences (enzymes and transporters) in UniProtKB",
+      "federatesWith": [
+        "https://sparql.rhea-db.org/sparql",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.rhea-db.org/sparql"
+    },
+    "https://sparql.rhea-db.org/.well-known/sparql-examples/18": {
+      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\n\n\nSELECT \n  ?rhea \n  ?chebi\nWHERE {\n  SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/chebi> {\n    ?chebi sachem:substructureSearch [\n        sachem:query \"[C@]12(CCC3CCCC[C@]3(C)[C@@]1([H])CC[C@]1(C)[C@@]([H])([C@@](C)([H])CCCC(C)C)CC[C@@]21[H])[H]\" ].\n  }\n  ?rhea rh:side/rh:contains/rh:compound/rdfs:subClassOf ?chebi .\n}",
+      "description": "Use <a href=\"https://idsm.elixir-czech.cz/sparql\">IDSM Sachem</a> to find ChEBIs with a a <a href=\"https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:35516\">Cholestane</a> skeleton (in SMILES). Then match returned ChEBIs to Rhea undirected reactions.",
+      "federatesWith": [
+        "https://sparql.rhea-db.org/sparql",
+        "https://idsm.elixir-czech.cz/sparql/endpoint/chebi"
+      ],
+      "target": "https://sparql.rhea-db.org/sparql"
+    },
+    "https://sparql.rhea-db.org/.well-known/sparql-examples/search_chemical_names_in_japanese": {
+      "query": "PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT\n*\nWHERE {\nSERVICE <https://data.allie.dbcls.jp/sparql>{\n        ?x rdfs:label \"1,2,4-トリクロロベンゼン\"@ja ;\n            rdfs:label ?englishLabel .\n        FILTER(lang(?englishLabel) = \"en\")\n    }\n  BIND(STR(?englishLabel) AS ?englishLabelStr)\n  ?chebi rdfs:label|oboInOwl:hasSynonym ?englishLabelStr .\n}",
+      "description": "Search for Chemical names starting in Japanese, translated to english using allie",
+      "federatesWith": [
+        "https://sparql.rhea-db.org/sparql/",
+        "https://data.allie.dbcls.jp/sparql"
+      ],
+      "target": "https://sparql.rhea-db.org/sparql/"
+    },
+    "https://sparql.rhea-db.org/.well-known/sparql-examples/11": {
+      "query": "PREFIX ec: <http://purl.uniprot.org/enzyme/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n\n# Query 11\n# Retrieve the count of reactions mapped to each level (main class) of the enzyme classification\n#\n# This query mimics the Filter section of the Rhea website (Browse all reactions)\n# https://www.rhea-db.org/rhea?query=\nSELECT ?ecClass (STR(?ecName) AS ?ecClassName) (COUNT(?rhea) AS ?rheaCount)\nWHERE {\n  SERVICE <https://sparql.uniprot.org/sparql> {\n    VALUES (?ecClass) { (ec:1.-.-.-)(ec:2.-.-.-)(ec:3.-.-.-)(ec:4.-.-.-)(ec:5.-.-.-) (ec:6.-.-.-) (ec:7.-.-.-)}\n    ?ecNumber rdfs:subClassOf ?ecClass .\n    ?ecClass skos:prefLabel ?ecName .\n  }\n  ?rhea rdfs:subClassOf rh:Reaction .\n  ?rhea rh:ec ?ecNumber .\n} GROUP BY ?ecClass ?ecName",
+      "description": "Distribution of reactions according to the first class of the enzyme classification (federated query)",
+      "federatesWith": [
+        "https://sparql.rhea-db.org/sparql",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.rhea-db.org/sparql"
+    },
+    "https://sparql.rhea-db.org/.well-known/sparql-examples/13": {
+      "query": "PREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Query 13\n# Select all Rhea reactions used to annotate Escherichia coli (taxid=83333) in UniProtKB/Swiss-Prot\n# return the number of UniProtKB entries\n# \n# Federated query using a service to UniProt SPARQL endpoint\n#\n# This query cannot be performed using the Rhea search website\nSELECT ?uniprot ?mnemo ?rhea ?accession ?equation \nWHERE {\n  SERVICE <https://sparql.uniprot.org/sparql> { \n    VALUES (?taxid) { (taxon:83333) }\n    GRAPH <http://sparql.uniprot.org/uniprot> {\n      ?uniprot up:reviewed true . \n      ?uniprot up:mnemonic ?mnemo . \n      ?uniprot up:organism ?taxid .\n      ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea . \n    }\n  }\n  ?rhea rh:accession ?accession .\n  ?rhea rh:equation ?equation .\n}",
+      "description": "Select all Rhea reactions used in UniProtKB/Swiss-Prot for a given organism (NCBI taxonomy ID).",
+      "federatesWith": [
+        "https://sparql.rhea-db.org/sparql",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.rhea-db.org/sparql"
+    },
+    "https://sparql.omabrowser.org/.well-known/sparql-examples/3": {
+      "query": "PREFIX lscr: <http://purl.org/lscr#>\nPREFIX obo: <http://purl.obolibrary.org/obo/>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\nSELECT DISTINCT ?proteinOMA ?species ?mnemonic ?evidenceType ?UniProt_URI\nWHERE {\n    ?proteinOMA a orth:Protein ;\n        orth:organism/obo:RO_0002162/up:scientificName ?species ;\n        rdfs:label 'INS' .\n    ?proteinOMA lscr:xrefUniprot ?UniProt_URI .\n    # Search the INS gene mnemonics and evidence types from Uniprot database\n    SERVICE <https://sparql.uniprot.org/sparql> {\n        ?UniProt_URI up:mnemonic ?mnemonic ;\n            up:existence/rdfs:label ?evidenceType.\n    }\n}",
+      "description": "Retrieve all proteins in OMA that is encoded by the INS gene and their mnemonics and evidence types from Uniprot database (federated query).",
+      "federatesWith": [
+        "https://sparql.omabrowser.org/sparql",
+        "https://sparql.uniprot.org/sparql"
+      ],
+      "target": "https://sparql.omabrowser.org/sparql"
+    },
+    "https://sparql.omabrowser.org/.well-known/sparql-examples/14": {
+      "query": "PREFIX oma: <http://omabrowser.org/ontology/oma#>\nPREFIX orth: <http://purl.org/net/orth#>\nPREFIX sio: <http://semanticscience.org/resource/>\nPREFIX lscr: <http://purl.org/lscr#>\nPREFIX mbgd: <http://purl.jp/bio/11/mbgd#>\n\nSELECT ?protein2 ?species WHERE {\n  SERVICE <http://sparql.nibb.ac.jp/sparql> {\n    SELECT ?protein2 ?species WHERE {\n      ?cluster_mbgd a orth:OrthologsCluster ;\n          orth:hasHomologous ?node1_mbgd ;\n        orth:hasHomologous ?node2_mbgd .\n      ?node1_mbgd orth:hasHomologous* ?gene1 .\n      ?node2_mbgd orth:hasHomologous* ?gene2 .\n      ?gene1 mbgd:uniprot <http://purl.uniprot.org/uniprot/K9Z723> .\n      ?gene2 mbgd:uniprot ?protein2 ;\n        mbgd:organism ?taxon .\n      OPTIONAL {\n        ?taxon mbgd:species ?species .\n      }\n      FILTER (?node1_mbgd != ?node2_mbgd)\n    }\n  }\n  FILTER NOT EXISTS { # keep only those that do not exist in OMA\n    ?cluster a orth:OrthologsCluster ;\n      orth:hasHomologousMember ?node1 ;\n      orth:hasHomologousMember ?node2 .\n    ?node1 orth:hasHomologousMember* ?protein_OMA_1.\n    ?node2 orth:hasHomologousMember* ?protein_OMA_2.\n    ?protein_OMA_1 lscr:xrefUniprot <http://purl.uniprot.org/uniprot/K9Z723>.\n    ?protein_OMA_2 lscr:xrefUniprot ?protein2.\n    FILTER (?node1 != ?node2)\n  }\n}",
+      "description": "Retrieve pairwise orthologous genes of the Cyanobacterium-aponinum psb27- gene that are found in the MBGD database but are not present in OMA",
+      "federatesWith": [
+        "https://sparql.omabrowser.org/sparql",
+        "http://sparql.nibb.ac.jp/sparql"
+      ],
+      "target": "https://sparql.omabrowser.org/sparql"
+    },
+    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/006": {
+      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\n\nSELECT ?family_name ?genus_name ?species_name ?wd_sp ?feature ?sub_rt ?sub_parent_mass ?count\nWHERE {\n    # Subquery to get the top N hits with their Wikidata IDs\n    {\n        SELECT ?wd_sp ?feature (SAMPLE(?rt) AS ?sub_rt) (SAMPLE(?parent_mass) AS ?sub_parent_mass) (COUNT(?peakloss) AS ?count)\n        WHERE {\n            ?material sosa:hasSample ?extract ;\n                sosa:isSampleOf* ?organism.\n            ?organism emi:inTaxon ?wd_sp .\n            ?extract a emi:ExtractSample ;\n                sosa:isFeatureOfInterestOf ?lcms .\n            ?lcms a emi:LCMSAnalysisPos ;\n                sosa:hasResult ?feature_list .\n            ?feature_list emi:hasLCMSFeature ?feature .\n            ?feature a emi:LCMSFeature ;\n                emi:hasSpec2VecDoc ?doc ;\n                emi:hasParentMass ?parent_mass ;\n                emi:hasRetentionTime ?rt .\n            ?doc emi:hasSpec2VecLoss|emi:hasSpec2VecPeak ?peakloss .\n\n            {\n                SELECT ?peakloss WHERE {\n                    ?lcms a emi:LCMSAnalysisPos ;\n                        sosa:hasResult ?feature_list ;\n                        sosa:hasFeatureOfInterest ?sample .\n                    ?sample dcterms:identifier \"VGF151_E05\" ;\n                        sosa:isSampleOf* ?organism .\n                    ?organism emi:inTaxon/rdfs:label \"datura stramonium\".\n                    ?feature_list emi:hasLCMSFeature ?feature .\n                    ?feature a emi:LCMSFeature ;\n                        emi:hasSpec2VecDoc ?doc .\n                    ?doc emi:hasSpec2VecLoss|emi:hasSpec2VecPeak ?peakloss .\n                }\n            }\n        }\n        GROUP BY ?wd_sp ?feature\n        ORDER BY DESC(?count)\n        LIMIT 5\n    }\n\n    # Outer query to fetch species names from Wikidata\n    # Fetching taxonomic information from Wikidata\n    SERVICE <https://query.wikidata.org/sparql> {\n        ?wd_sp wdt:P225 ?species_name .\n        OPTIONAL {\n            ?family wdt:P31 wd:Q16521 ;\n                wdt:P105 wd:Q35409 ;\n                wdt:P225 ?family_name ;\n                ^wdt:P171* ?wd_sp .\n        }\n        OPTIONAL {\n            ?genus wdt:P31 wd:Q16521 ;\n                wdt:P105 wd:Q34740 ;\n                wdt:P225 ?genus_name ;\n                ^wdt:P171* ?wd_sp .\n        }\n    }\n} GROUP BY ?family_name ?genus_name ?species_name ?wd_sp ?feature ?sub_rt ?sub_parent_mass ?count\nORDER BY DESC(?count)",
+      "description": "Search spectrally related features with and within the VGF151_E05 sample of a datura stramonium through counts of common peaks and loss. Return their species, family and genus names",
+      "federatesWith": [
+        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
+        "https://query.wikidata.org/sparql"
+      ],
+      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
+    },
+    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/001": {
+      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX pr: <http://www.wikidata.org/prop/reference/>\n\nSELECT DISTINCT ?ik2d ?genus\nWHERE\n    {\n    ?material sosa:hasSample ?extract ;\n        sosa:isSampleOf ?organe .\n    ?organe emi:inTaxon ?wd_sp .\n    ?wd_sp rdfs:label \"tabernaemontana coffeoides\" .\n    ?extract sosa:isFeatureOfInterestOf ?lcms .\n    ?lcms sosa:hasResult ?feature_list .\n    ?feature_list emi:hasLCMSFeature ?feature .\n    ?feature emi:hasAnnotation ?sirius_annotation .\n    ?sirius_annotation a emi:StructuralAnnotation ;\n        prov:wasGeneratedBy ?activity ;\n        emi:hasChemicalStructure ?ik2d .\n    ?activity prov:wasAssociatedWith <https://bio.informatik.uni-jena.de/software/sirius> .\n    ?ik2d emi:hasSMILES ?smiles ;\n        emi:isInChIKey2DOf ?ik .\n    ?ik emi:isInChIKeyOf ?wd_id .\n\t{\n        SELECT DISTINCT ?wd_id ?genus WHERE {\n            ?material sosa:hasSample ?extract ;\n                sosa:isSampleOf ?organe .\n            ?organe emi:inTaxon ?wd_sp .\n            ?wd_sp rdfs:label \"tabernaemontana coffeoides\" .\n            OPTIONAL {\n                SERVICE <https://query.wikidata.org/sparql> {\n                    ?wd_sp wdt:P225 ?species_name .\n                    ?genus wdt:P31 wd:Q16521 ;\n                        wdt:P105 wd:Q34740 ;\n                        ^wdt:P171* ?wd_sp .\n                    ?childtaxa wdt:P171* ?genus .\n                    ?wd_id wdt:P703 ?childtaxa\n                }\n            }\n        }\n    }\n}",
+      "description": "Among the SIRIUS structural annotations from Tabernaemontana coffeoides (Apocynaceae) seeds extract, which ones are reported in the Tabernaemontana genus?",
+      "federatesWith": [
+        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
+        "https://query.wikidata.org/sparql"
+      ],
+      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
+    },
+    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/009": {
+      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\n\nSELECT ?extract ?organe ?species_name ?genus_name ?family_name ?count_of_selected_class\nWHERE {\n    ?material sosa:hasSample ?extract ;\n        sosa:isSampleOf ?organe .\n    ?organe emi:inTaxon ?wd_sp .\n    OPTIONAL {\n        SERVICE <https://query.wikidata.org/sparql> {\n            ?wd_sp wdt:P225 ?species_name .\n            ?family wdt:P31 wd:Q16521 ;\n                wdt:P105 wd:Q35409 ;\n                wdt:P225 ?family_name ;\n                ^wdt:P171* ?wd_sp .\n            ?genus wdt:P31 wd:Q16521 ;\n                wdt:P105 wd:Q34740 ;\n                wdt:P225 ?genus_name ;\n                ^wdt:P171* ?wd_sp .\n        }\n    }\n    {\n        SELECT ?extract (COUNT(DISTINCT ?feature) AS ?count_of_selected_class)\n        WHERE {\n            ?extract a emi:ExtractSample ;\n                sosa:isFeatureOfInterestOf ?lcms .\n            ?lcms a emi:LCMSAnalysis ;\n                emi:hasLCMSFeatureSet ?feature_list .\n            ?feature_list emi:hasLCMSFeature ?feature .\n            ?feature emi:hasAnnotation ?canopus .\n            ?canopus a emi:ChemicalTaxonAnnotation ;\n                emi:hasClass ?np_class ;\n                emi:hasClassProbability ?class_prob .\n            ?np_class rdfs:label \"Aspidosperma type\" .\n            FILTER((?class_prob > 0.5)) .\n        } GROUP BY ?extract ORDER BY DESC(?count_of_selected_class)\n    }\n}",
+      "description": "Which samples have features annotated as Aspidosperma_type alkaloids by CANOPUS with a probability score above 0.5, ordered by the decreasing count of features?",
+      "federatesWith": [
+        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
+        "https://query.wikidata.org/sparql"
+      ],
+      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
+    },
+    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/007": {
+      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\n\nSELECT DISTINCT ?ik ?wd_id ?taxon ?taxon_name\nWHERE {\n    SERVICE <https://query.wikidata.org/sparql> {\n        ?wd_id wdt:P31 wd:Q113145171 ;\n            wdt:P703 ?taxon .\n        ?taxon wdt:P225 ?taxon_name .\n    }\n    {\n        SELECT DISTINCT ?ik ?chemblid ?name ?type ?value ?wd_id\n        WHERE {\n            ?sample a emi:ExtractSample ;\n                sosa:isSampleOf* ?organe ;\n                sosa:isFeatureOfInterestOf ?lcms .\n            ?organe emi:inTaxon ?taxon .\n            ?taxon rdfs:label \"melochia umbellata\" .\n            ?lcms a emi:LCMSAnalysisPos ;\n                sosa:hasResult ?feature_list .\n            ?feature_list emi:hasLCMSFeature ?feature .\n            {\n                ?feature emi:hasAnnotation ?annotation .\n                ?annotation a emi:StructuralAnnotation ;\n                    prov:wasGeneratedBy ?activity .\n                ?activity prov:wasAssociatedWith <https://bio.informatik.uni-jena.de/software/sirius> .\n                ?annotation emi:hasCosmicScore ?cosmic ;\n                    emi:hasZodiacScore ?zodiac .\n                FILTER((?cosmic > 0.5) && (?zodiac > 0.8))\n            } UNION {\n                ?feature emi:hasAnnotation ?annotation .\n                ?annotation emi:hasTaxoScore ?taxo .\n                FILTER(?taxo >= 6)\n            }\n            ?annotation emi:hasChemicalStructure ?ik2d .\n            ?ik2d emi:hasSMILES ?smiles ;\n                emi:isInChIKey2DOf ?ik .\n            ?ik emi:isInChIKeyOf ?wd_id .\n        }\n    }\n}",
+      "description": "Show chemical structures in Melochia umbellata extracts with structural annotations where the cosmic score is greater than 0.5 and the zodiac score is less than 0.8. For ISDB annotations, consider taxon scores less than 6",
+      "federatesWith": [
+        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
+        "https://query.wikidata.org/sparql"
+      ],
+      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
+    },
+    "https://sib-swiss.github.io/sparql-examples/examples/dbgi/002": {
+      "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX enpkg: <https://enpkg.commons-lab.org/kg/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX sachem: <http://bioinfo.uochb.cas.cz/rdf/v1.0/sachem#>\nPREFIX emi: <https://purl.org/emi#>\nPREFIX sosa: <http://www.w3.org/ns/sosa/>\n\nSELECT DISTINCT ?ik2d ?smiles\nWHERE {\n    ?extract a emi:ExtractSample ;\n        sosa:isSampleOf* ?organe .\n    ?organe emi:inTaxon ?taxon .\n    ?taxon rdfs:label \"tabernaemontana coffeoides\" .\n    ?extract sosa:isFeatureOfInterestOf ?lcms .\n    ?lcms sosa:hasResult ?feature_list .\n    ?feature_list emi:hasLCMSFeature ?feature .\n    ?feature emi:hasAnnotation ?annotation .\n    ?annotation emi:hasChemicalStructure ?ik2d .\n    ?ik2d a emi:InChIKey2D ;\n        emi:hasSMILES ?smiles ;\n        emi:isInChIKey2DOf ?ik .\n    ?ik emi:isInChIKeyOf ?wd_id .\n    SERVICE <https://idsm.elixir-czech.cz/sparql/endpoint/wikidata> {\n        SELECT * WHERE {\n            ?wd_id sachem:substructureSearch [\n                sachem:query \"CCC12CCCN3C1C4(CC3)C(CC2)NC5=CC=CC=C45\" # Aspidospermidine scaffold\n            ] .\n        }\n    }\n}",
+      "description": "Among the structural annotations from Tabernaemontana coffeoides (Apocynaceae) seeds extract, which ones contain an aspidospermidine substructure?",
+      "federatesWith": [
+        "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi",
+        "https://idsm.elixir-czech.cz/sparql/endpoint/wikidata"
+      ],
+      "target": "https://biosoda.unil.ch/graphdb/repositories/emi-dbgi"
     }
   },
   "metadata": {
-    "date": 1730713961750,
+    "date": 1730716923090,
     "commit": "436f604",
-    "number_of_queries": 72
+    "number_of_queries": 28
   }
 }
