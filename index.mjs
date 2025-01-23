@@ -70,7 +70,8 @@ exec(getCurrentCommitSibCommand, (error, stdout, stderr) => {
   federatedQueryReport["metadata"] = {
     "date": Date.now(),
     "commit": stdout.replace("\n", ""),
-    "number_of_queries": nQueries
+    "number_of_queries": nQueries,
+    "ignored_endpoints":ignoreEndpoints
   };
   writeFileSync("./sib-swiss-federated-queries.json", JSON.stringify(federatedQueryReport, null, 2));
 });
