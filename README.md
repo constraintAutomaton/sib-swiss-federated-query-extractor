@@ -75,3 +75,6 @@ to produce the `./sib-swiss-federated-queries.json`, with this format.
 ```
 
 endpoints can be ignored using the `-i` argument.
+
+## License
+The code is licensed under the MIT license. See the [LICENSE](LICENSE) file for details.
