@@ -43,13 +43,12 @@ for (const binding of bindings) {
   const federatedEndpoint = binding.get('federatedEndpoint').value;
   const target = binding.get('target').value;
   if (federatedQueryReport["data"][queryID] !== undefined) {
-    federatedQueryReport["data"][queryID]["federatesWith"].push(target);
     federatedQueryReport["data"][queryID]["federatesWith"].push(federatedEndpoint);
   } else {
     federatedQueryReport["data"][queryID] = {
       query,
       description,
-      federatesWith: [target, federatedEndpoint]
+      federatesWith: [federatedEndpoint]
     }
   }
   federatedQueryReport["data"][queryID]["target"] = target;
